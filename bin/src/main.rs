@@ -1,36 +1,21 @@
 // use std::time::Duration;
 
-use std::{fs::File, io::BufReader, sync::Arc};
-
-//
-use app_service::{service_utils, tasks};
 use axum::{
-    extract::Request,
     handler::HandlerWithoutStateExt,
     http::{Method, StatusCode},
     routing::get_service,
     Router,
-};
-// use axum_server::tls_rustls::RustlsConfig;
-use configs::CFG;
-use futures_util::pin_mut;
-use hyper::body::Incoming;
-use hyper_util::rt::TokioExecutor;
-use rustls_pemfile::{certs, pkcs8_private_keys};
-use tokio_rustls::{
-    rustls::{Certificate, PrivateKey, ServerConfig},
-    TlsAcceptor,
 };
 use tower_http::{
     compression::{predicate::NotForContentType, CompressionLayer, DefaultPredicate, Predicate},
     cors::{Any, CorsLayer},
     services::ServeDir,
 };
-use tower_service::Service;
-use tracing::{error, warn};
 use tracing_subscriber::{fmt, layer::SubscriberExt, EnvFilter, Registry};
+
+use app_service::{service_utils, tasks};
+use configs::CFG;
 use utils::my_env::{self, RT};
-// 路由日志追踪
 
 // #[tokio::main]
 fn main() {
@@ -91,79 +76,11 @@ fn main() {
             false => app,
         };
         let app = app.layer(cors);
-        match CFG.server.ssl {
-            true => {
-                let rustls_config = rustls_server_config();
-                let tls_acceptor = TlsAcceptor::from(rustls_config);
-                let tcp_listener = tokio::net::TcpListener::bind(&CFG.server.address).await.unwrap();
-
-                pin_mut!(tcp_listener);
-                loop {
-                    let tower_service = app.clone();
-                    let tls_acceptor = tls_acceptor.clone();
-
-                    // Wait for new tcp connection
-                    let (cnx, addr) = tcp_listener.accept().await.unwrap();
-
-                    tokio::spawn(async move {
-                        // Wait for tls handshake to happen
-                        let Ok(stream) = tls_acceptor.accept(cnx).await else {
-                            error!("error during tls handshake connection from {}", addr);
-                            return;
-                        };
-
-                        // Hyper has its own `AsyncRead` and `AsyncWrite` traits and doesn't use tokio.
-                        // `TokioIo` converts between them.
-                        let stream = hyper_util::rt::TokioIo::new(stream);
-
-                        // Hyper has also its own `Service` trait and doesn't use tower. We can use
-                        // `hyper::service::service_fn` to create a hyper `Service` that calls our app
-                        // through `tower::Service::call`.
-                        let hyper_service = hyper::service::service_fn(move |request: Request<Incoming>| {
-                            // We have to clone `tower_service` because hyper's `Service` uses `&self`
-                            // whereas tower's `Service` requires `&mut self`.
-                            //
-                            // We don't need to call `poll_ready` since `Router` is always ready.
-                            tower_service.clone().call(request)
-                        });
-
-                        let ret = hyper_util::server::conn::auto::Builder::new(TokioExecutor::new())
-                            .serve_connection_with_upgrades(stream, hyper_service)
-                            .await;
-
-                        if let Err(err) = ret {
-                            warn!("error serving connection from {}: {}", addr, err);
-                        }
-                    });
-                }
-            }
-
-            false => {
-                let listener = tokio::net::TcpListener::bind(&CFG.server.address).await.unwrap();
-                axum::serve(listener, app).await.unwrap();
-            }
-        }
+        let listener = tokio::net::TcpListener::bind(&CFG.server.address).await.unwrap();
+        axum::serve(listener, app).await.unwrap();
     })
 }
 
 async fn handle_404() -> (StatusCode, &'static str) {
     (StatusCode::NOT_FOUND, "Not found")
-}
-
-fn rustls_server_config() -> Arc<ServerConfig> {
-    let mut key_reader = BufReader::new(File::open(&CFG.cert.key).unwrap());
-    let mut cert_reader = BufReader::new(File::open(&CFG.cert.cert).unwrap());
-
-    let key = PrivateKey(pkcs8_private_keys(&mut key_reader).unwrap().remove(0));
-    let certs = certs(&mut cert_reader).unwrap().into_iter().map(Certificate).collect();
-
-    let mut config = ServerConfig::builder()
-        .with_safe_defaults()
-        .with_no_client_auth()
-        .with_single_cert(certs, key)
-        .expect("bad certificate/key");
-
-    config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
-
-    Arc::new(config)
 }

@@ -23,7 +23,7 @@ version = "0.1.0"
 default-run = "axum-admin"
 
 [workspace.dependencies]
-# axum 
+# axum
 axum = "0"
 axum-extra = "0"
 # axum-server = "0"
@@ -52,7 +52,7 @@ serde_json = "1"
 # tokio
 tokio = "1"
 tokio-stream = '0'
-tokio-rustls  = "0"
+tokio-rustls = "0"
 #  "tracing"
 toml = "0"
 # tracing
@@ -89,9 +89,9 @@ sea-orm = "0"
 
 
 [profile.release]
-codegen-units = 1 
-debug = false 
-lto = true 
+codegen-units = 1
+debug = false
+lto = true
 opt-level = "z" # Optimize for size.
-panic = 'abort' 
+panic = 'abort'
 # strip = "symbols" # none(false) debuginfo symbols(true).

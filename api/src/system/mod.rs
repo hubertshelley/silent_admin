@@ -183,10 +183,17 @@ fn sys_api_db_api() -> Router {
         .route("/get_by_id", get(sys_api_db::get_by_id)) // 按id获取
         .route("/add", post(sys_api_db::add)) // 添加
 }
+
+#[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
 fn sys_monitor_api() -> Router {
     Router::new()
         .route("/server", get(common::get_server_info)) // 服务器信息
         .route("/server-event", get(common::get_server_info_sse)) // 服务器信息
+}
+
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+fn sys_monitor_api() -> Router {
+    Router::new()
 }
 
 fn sys_update_log_api() -> Router {
