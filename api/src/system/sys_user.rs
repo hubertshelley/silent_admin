@@ -2,10 +2,6 @@ use app_service::{
     service_utils::jwt::{AuthBody, Claims},
     system,
 };
-use axum::{
-    extract::{Multipart, Query},
-    Json,
-};
 use db::{
     common::res::{ListData, PageParams, Res},
     db_conn,
@@ -16,6 +12,8 @@ use db::{
     DB,
 };
 use headers::HeaderMap;
+use silent::Result;
+use silent::{Request, SilentError, StatusCode};
 use tokio::join;
 
 /// get_user_list 获取用户列表
@@ -189,17 +187,27 @@ pub async fn change_dept(Json(req): Json<ChangeDeptReq>) -> Res<String> {
     }
 }
 
-pub async fn update_avatar(user: Claims, multipart: Multipart) -> Res<String> {
-    let res = system::common::upload_file(multipart).await;
+pub async fn update_avatar(mut req: Request) -> Result<Res<String>> {
+    let user = Claims::from_request_parts(&mut req).await?;
+    let file_part = req
+        .files("files")
+        .await
+        .ok_or(SilentError::business_error(StatusCode::BAD_REQUEST, "请上传文件".to_string()))?
+        .first();
+    if file_part.is_none() {
+        return Ok(Res::with_msg("请上传文件"));
+    }
+    let file_part = file_part.unwrap();
+    let res = system::common::upload_file(file_part).await;
     match res {
         Ok(x) => {
             let db = DB.get_or_init(db_conn).await;
             let res = system::sys_user::update_avatar(db, &x, &user.id).await;
             match res {
-                Ok(y) => Res::with_data_msg(x, &y),
-                Err(e) => Res::with_err(&e.to_string()),
+                Ok(y) => Ok(Res::with_data_msg(x, &y)),
+                Err(e) => Ok(Res::with_err(&e.to_string())),
             }
         }
-        Err(e) => Res::with_err(&e.to_string()),
+        Err(e) => Ok(Res::with_err(&e.to_string())),
     }
 }

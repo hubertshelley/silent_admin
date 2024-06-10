@@ -13,10 +13,10 @@ pub mod cache;
 pub mod cache_skytable;
 
 //  重新导出
-pub use auth::auth_fn_mid as ApiAuth;
+pub use auth::AuthMiddleware as ApiAuth;
 #[cfg(feature = "cache-mem")]
-pub use cache::cache_fn_mid as Cache;
+pub use cache::CacheMiddleware as Cache;
 #[cfg(feature = "cache-skytable")]
-pub use cache_skytable::cache_fn_mid as SkyTableCache;
-pub use ctx::ctx_fn_mid as Ctx;
-pub use oper_log::oper_log_fn_mid as OperLog;
+pub use cache_skytable::SkyTableCacheMiddleware as SkyTableCache;
+pub use ctx::CtxMiddleware as Ctx;
+pub use oper_log::OperLogMiddleware as OperLog;

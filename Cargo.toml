@@ -13,21 +13,22 @@ resolver = "2"
 
 
 [workspace.package]
-authors = ["lingdu <waong2005@126.com>"]
+authors = ["hubertshelley <hubertshelley@163.com>"]
 edition = "2021"
-homepage = "https://314.iu1314.top"
+homepage = "https://github.com/hubertshelley"
 license = "Apache-2.0"
 publish = false
-repository = ""
+repository = "https://github.com/hubertshelley/silent_admin.git"
 version = "0.1.0"
-default-run = "axum-admin"
+default-run = "silent-admin"
 
 [workspace.dependencies]
-# axum
-axum = "0"
-axum-extra = "0"
+# silent
+silent = "1"
+
 # axum-server = "0"
 hyper = "1"
+http = "1"
 hyper-util = "0"
 http-body-util = "0"
 rustls-pemfile = "1"

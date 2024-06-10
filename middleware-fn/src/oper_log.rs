@@ -3,42 +3,46 @@ use std::time::Instant;
 
 use anyhow::Result;
 use app_service::{service_utils::api_utils::ALL_APIS, system::check_user_online};
-use axum::{extract::Request, middleware::Next, response::IntoResponse};
 use chrono::Local;
 use configs::CFG;
 use db::{
-    common::{
-        ctx::{ReqCtx, UserInfoCtx},
-        res::ResJsonString,
-    },
+    common::ctx::{ReqCtx, UserInfoCtx},
     db_conn,
     system::entities::{prelude::SysOperLog, sys_oper_log},
     DB,
 };
-use hyper::StatusCode;
 use sea_orm::{EntityTrait, Set};
+use sea_orm::prelude::async_trait;
+use silent::{MiddleWareHandler, MiddlewareResult, Request, Response, Result as SilentResult};
 
-pub async fn oper_log_fn_mid(req: Request, next: Next) -> Result<impl IntoResponse, (StatusCode, String)> {
-    // 查询ctx
-    let req_ctx = match req.extensions().get::<ReqCtx>() {
-        Some(x) => x.clone(),
-        None => return Ok(next.run(req).await),
-    };
+pub struct OperLogMiddleware;
 
-    let ctx_user = match req.extensions().get::<UserInfoCtx>() {
-        Some(x) => x.clone(),
-        None => return Ok(next.run(req).await),
-    };
+#[async_trait::async_trait]
+impl MiddleWareHandler for OperLogMiddleware {
+    async fn pre_request(&self, _req: &mut Request, res: &mut Response) -> SilentResult<MiddlewareResult> {
+        res.extensions_mut().insert(Instant::now());
+        Ok(MiddlewareResult::Continue)
+    }
+    async fn after_response(&self, res: &mut Response) -> SilentResult<MiddlewareResult> {
+        // 查询ctx
+        let req_ctx = match res.extensions().get::<ReqCtx>() {
+            Some(x) => x.clone(),
+            None => return Ok(MiddlewareResult::Continue),
+        };
 
-    let now = Instant::now();
-    let res_end = next.run(req).await;
-    let duration = now.elapsed();
-    let res_string = match res_end.extensions().get::<ResJsonString>() {
-        Some(x) => x.0.clone(),
-        None => "".to_string(),
-    };
-    oper_log_add(req_ctx, ctx_user, res_string, "1".to_string(), "".to_string(), duration).await;
-    Ok(res_end)
+        let ctx_user = match res.extensions().get::<UserInfoCtx>() {
+            Some(x) => x.clone(),
+            None => return Ok(MiddlewareResult::Continue),
+        };
+
+        let duration = match res.extensions().get::<Instant>() {
+            Some(x) => x.elapsed(),
+            None => Duration::from_nanos(0),
+        };
+        let res_string = "".to_string();
+        oper_log_add(req_ctx, ctx_user, res_string, "1".to_string(), "".to_string(), duration).await;
+        Ok(MiddlewareResult::Continue)
+    }
 }
 
 pub async fn oper_log_add(ctx: ReqCtx, ctx_user: UserInfoCtx, res: String, status: String, err_msg: String, duration: Duration) {
@@ -120,7 +124,7 @@ async fn db_log(duration: Duration, ctx: ReqCtx, ctx_user: UserInfoCtx, now: chr
     };
     let add_data = sys_oper_log::ActiveModel {
         oper_id: Set(scru128::new_string()),
-        time_id: Set(now.timestamp()),
+        time_id: Set(now.and_utc().timestamp()),
         title: Set(api_name),
         business_type: Set("".to_string()),
         method: Set(ctx.path),

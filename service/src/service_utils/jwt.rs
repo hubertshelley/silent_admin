@@ -1,19 +1,13 @@
-use axum::{
-    extract::FromRequestParts,
-    // headers::{authorization::Bearer, Authorization},
-    http::{request::Parts, StatusCode},
-    response::{IntoResponse, Response},
-    Json,
-    RequestPartsExt,
-};
-use axum_extra::TypedHeader;
 use chrono::{Duration, Local};
 use db::common::ctx::UserInfoCtx;
-use headers::{authorization::Bearer, Authorization};
+use headers::{authorization::Bearer, Authorization, HeaderMapExt};
+use http::request::Parts;
+use http::{HeaderMap, HeaderValue, StatusCode};
 use jsonwebtoken::{decode, encode, errors::ErrorKind, DecodingKey, EncodingKey, Header, Validation};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use silent::{Request, Response, Result as SilentResult, SilentError};
 
 use super::super::system::check_user_online;
 
@@ -51,15 +45,10 @@ pub struct Claims {
     pub exp: i64,
 }
 
-#[axum::async_trait]
-impl<S> FromRequestParts<S> for Claims
-where
-    S: Send + Sync,
-{
-    type Rejection = AuthError;
+impl Claims {
     /// 将用户信息注入request
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let (_, token_v) = get_bear_token(parts).await?;
+    pub async fn from_request_parts(req: &mut Request) -> SilentResult<Self> {
+        let (_, token_v) = get_bear_token(req.headers_mut()).await.map_err(|e| <AuthError as Into<SilentError>>::into(e))?;
         // Decode the user data
 
         let token_data = match decode::<Claims>(&token_v, &KEYS.decoding, &Validation::default()) {
@@ -69,23 +58,19 @@ where
                 if x {
                     token
                 } else {
-                    return Err(AuthError::CheckOutToken);
+                    return Err(AuthError::CheckOutToken.into());
                 }
             }
-            Err(err) => match *err.kind() {
-                ErrorKind::InvalidToken => {
-                    return Err(AuthError::InvalidToken);
+            Err(err) => {
+                return match *err.kind() {
+                    ErrorKind::InvalidToken => Err(AuthError::InvalidToken.into()),
+                    ErrorKind::ExpiredSignature => Err(AuthError::MissingCredentials.into()),
+                    _ => Err(AuthError::WrongCredentials.into()),
                 }
-                ErrorKind::ExpiredSignature => {
-                    return Err(AuthError::MissingCredentials);
-                }
-                _ => {
-                    return Err(AuthError::WrongCredentials);
-                }
-            },
+            }
         };
         let user = token_data.claims;
-        parts.extensions.insert(UserInfoCtx {
+        req.extensions_mut().insert(UserInfoCtx {
             id: user.id.clone(),
             token_id: user.token_id.clone(),
             name: user.name.clone(),
@@ -94,9 +79,12 @@ where
     }
 }
 
-pub async fn get_bear_token(parts: &mut Parts) -> Result<(String, String), AuthError> {
+pub async fn get_bear_token(headers: &mut HeaderMap<HeaderValue>) -> Result<(String, String), AuthError> {
     // Extract the token from the authorization header
-    let TypedHeader(Authorization(bearer)) = parts.extract::<TypedHeader<Authorization<Bearer>>>().await.map_err(|_| AuthError::InvalidToken)?;
+    let Authorization(bearer) = headers
+        .typed_try_get::<Authorization<Bearer>>()
+        .map_err(|_| AuthError::InvalidToken)?
+        .ok_or(AuthError::InvalidToken)?;
     // Decode the user data
     let bearer_data = bearer.token();
     let cut = bearer_data.len() - scru128::new_string().len();
@@ -129,8 +117,8 @@ pub enum AuthError {
     InvalidToken,
     CheckOutToken,
 }
-impl IntoResponse for AuthError {
-    fn into_response(self) -> Response {
+impl Into<SilentError> for AuthError {
+    fn into(self) -> SilentError {
         let (status, error_message) = match self {
             AuthError::WrongCredentials => (StatusCode::UNAUTHORIZED, "Wrong credentials"),
             AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
@@ -138,10 +126,7 @@ impl IntoResponse for AuthError {
             AuthError::InvalidToken => (StatusCode::BAD_REQUEST, "Invalid token"),
             AuthError::CheckOutToken => (StatusCode::UNAUTHORIZED, "该账户已经退出"),
         };
-        let body = Json(json!({
-            "error": error_message,
-        }));
-        (status, body).into_response()
+        SilentError::business_error(status, json!({ "error": error_message }).to_string())
     }
 }
 

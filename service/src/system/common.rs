@@ -1,8 +1,11 @@
 use anyhow::Result;
-use axum::extract::Multipart;
 use captcha_rust::Captcha;
 use configs::CFG;
 use db::common::captcha::CaptchaImage;
+use http::StatusCode;
+use silent::prelude::FilePart;
+use silent::SilentError;
+use std::path::Path;
 use tokio::{fs, io::AsyncWriteExt};
 
 /// 获取验证码
@@ -26,24 +29,25 @@ fn get_file_type(content_type: &str) -> String {
 }
 
 /// 上传相关
-pub async fn upload_file(mut multipart: Multipart) -> Result<String> {
-    if let Some(field) = multipart.next_field().await? {
-        let content_type = field.content_type().map(ToString::to_string).unwrap_or_else(|| "".to_string());
-        let old_url = field.file_name().map(ToString::to_string).unwrap_or_else(|| "".to_string());
-        let file_type = get_file_type(&content_type);
-        let bytes = field.bytes().await?;
+pub async fn upload_file(file_part: &FilePart) -> Result<String> {
+    let res: Result<String> = {
+        let file_type = file_part.name().unwrap_or_else(|| "").split(".").last().unwrap_or_else(|| "");
         let now = chrono::Local::now();
         let file_path_t = CFG.web.upload_dir.clone() + "/" + &now.format("%Y-%m").to_string();
         let url_path_t = CFG.web.upload_url.clone() + "/" + &now.format("%Y-%m").to_string();
         fs::create_dir_all(&file_path_t).await?;
-        let file_name = now.format("%d").to_string() + "-" + &scru128::new_string() + &file_type;
+        let file_name = now.format("%d").to_string() + "-" + &scru128::new_string() + "." + &file_type;
         let file_path = file_path_t + "/" + &file_name;
         let url_path = url_path_t + "/" + &file_name;
-        let mut file = fs::File::create(&file_path).await?;
-        file.write_all(&bytes).await?;
-        if !old_url.is_empty() {
-            self::delete_file(&old_url).await;
-        }
+        // todo: 优化异步上传
+        // file_part.save(file_path)?;
+        std::fs::copy(file_part.path(), Path::new(file_path.as_str())).map_err(|e| SilentError::BusinessError {
+            code: StatusCode::INTERNAL_SERVER_ERROR,
+            msg: format!("Failed to save file: {}", e),
+        })?;
+        Ok(url_path)
+    };
+    if let Ok(url_path) = res {
         Ok(url_path)
     } else {
         Err(anyhow::anyhow!("上传文件失败"))

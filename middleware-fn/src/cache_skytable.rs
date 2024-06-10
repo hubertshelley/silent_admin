@@ -2,18 +2,11 @@ use core::time::Duration;
 use std::{collections::BTreeMap, sync::Arc, time::Instant};
 
 use app_service::service_utils::api_utils::ALL_APIS;
-use axum::{
-    extract::Request,
-    http::StatusCode,
-    middleware::Next,
-    response::{IntoResponse, Response},
-};
 use configs::CFG;
-use db::common::{
-    ctx::{ApiInfo, ReqCtx, UserInfoCtx},
-    res::ResJsonString,
-};
+use db::common::ctx::{ApiInfo, ReqCtx, UserInfoCtx};
 use once_cell::sync::Lazy;
+use sea_orm::prelude::async_trait;
+use silent::{MiddleWareHandler, MiddlewareResult, Request, Response, Result as SilentResult};
 use skytable::{
     actions::AsyncActions,
     pool::{AsyncPool, ConnectionManager},
@@ -157,72 +150,66 @@ pub async fn remove_cache_data(data_keys: Vec<String>) {
     }
 }
 //  缓存中间件
-pub async fn cache_fn_mid(req: Request, next: Next) -> Result<Response, StatusCode> {
-    let apis = ALL_APIS.lock().await;
-    let ctx = req.extensions().get::<ReqCtx>().expect("ReqCtx not found").clone();
-    let ctx_user = match req.extensions().get::<UserInfoCtx>() {
-        Some(v) => v.to_owned(),
-        None => return Ok(next.run(req).await),
-    };
-    let api_info = match apis.get(&ctx.path) {
-        Some(x) => x.clone(),
-        None => ApiInfo {
-            name: "".to_string(),
-            data_cache_method: "0".to_string(),
-            log_method: "0".to_string(),
-            related_api: None,
-        },
-    };
-    // 释放锁
-    drop(apis);
-    let token_id = ctx_user.token_id;
+pub struct SkyTableCacheMiddleware;
 
-    if ctx.method.as_str() != "GET" {
-        let res_end = next.run(req).await;
-        return match res_end.status() {
-            StatusCode::OK => {
-                let related_api = api_info.related_api.clone();
-                tokio::spawn(async move {
-                    remove_index_map(related_api).await;
-                });
-                Ok(res_end)
-            }
-            _ => Ok(res_end),
+#[async_trait::async_trait]
+impl MiddleWareHandler for SkyTableCacheMiddleware {
+    async fn pre_request(&self, req: &mut Request, _res: &mut Response) -> SilentResult<MiddlewareResult> {
+        let apis = ALL_APIS.lock().await;
+        let ctx = req.extensions().get::<ReqCtx>().expect("ReqCtx not found").clone();
+        let ctx_user = match req.extensions().get::<UserInfoCtx>() {
+            Some(v) => v.to_owned(),
+            None => return Ok(MiddlewareResult::Continue),
         };
-    }
-    let data_key = match api_info.data_cache_method.clone().as_str() {
-        "1" => format!("{}_{}_{}", &ctx.ori_uri, &ctx.method, &token_id),
-        _ => format!("{}_{}", &ctx.ori_uri, &ctx.method),
-    };
-    // 开始请求数据
-    match api_info.data_cache_method.as_str() {
-        "0" => {
-            let res_end = next.run(req).await;
-            Ok(res_end)
-        }
-        _ => match get_cache_data(&ctx.path, &data_key).await {
-            Some(v) => Ok(v.into_response()),
-
-            None => {
-                let res_end = next.run(req).await;
-                match res_end.status() {
-                    StatusCode::OK => {
-                        let res_ctx = match res_end.extensions().get::<ResJsonString>() {
-                            Some(x) => x.0.clone(),
-                            None => "".to_string(),
-                        };
-
-                        tokio::spawn(async move {
-                            // 缓存数据
-                            add_cache_data(&ctx.ori_uri, &ctx.path, &data_key, res_ctx).await;
-                        });
-
-                        Ok(res_end)
-                    }
-                    _ => Ok(res_end),
+        let api_info = match apis.get(&ctx.path) {
+            Some(x) => x.clone(),
+            None => ApiInfo {
+                name: "".to_string(),
+                data_cache_method: "0".to_string(),
+                log_method: "0".to_string(),
+                related_api: None,
+            },
+        };
+        // 释放锁
+        drop(apis);
+        let token_id = ctx_user.token_id;
+        let data_key = match api_info.data_cache_method.clone().as_str() {
+            "1" => format!("{}_{}_{}", &ctx.ori_uri, &ctx.method, &token_id),
+            _ => format!("{}_{}", &ctx.ori_uri, &ctx.method),
+        };
+        // 开始请求数据
+        match api_info.data_cache_method.as_str() {
+            "0" => Ok(MiddlewareResult::Continue),
+            _ => match get_cache_data(&ctx.path, &data_key).await {
+                Some(v) => {
+                    let res = Response::empty().with_body(v.into());
+                    Ok(MiddlewareResult::Break(res))
                 }
-            }
-        },
+
+                None => Ok(MiddlewareResult::Continue),
+            },
+        }
+    }
+
+    async fn after_response(&self, res: &mut Response) -> SilentResult<MiddlewareResult> {
+        let apis = ALL_APIS.lock().await;
+        let ctx = res.extensions().get::<ReqCtx>().expect("ReqCtx not found").clone();
+        let api_info = match apis.get(&ctx.path) {
+            Some(x) => x.clone(),
+            None => ApiInfo {
+                name: "".to_string(),
+                data_cache_method: "0".to_string(),
+                log_method: "0".to_string(),
+                related_api: None,
+            },
+        };
+        // 释放锁
+        drop(apis);
+        let related_api = api_info.related_api.clone();
+        tokio::spawn(async move {
+            remove_index_map(related_api).await;
+        });
+        Ok(MiddlewareResult::Continue)
     }
 }
 

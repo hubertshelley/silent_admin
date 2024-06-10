@@ -8,60 +8,62 @@ version.workspace = true
 
 [dependencies]
 #
-configs = {path = "../configs"}
-db = {path = "../db"}
-utils = {path = "../utils"}
+configs = { path = "../configs" }
+db = { path = "../db" }
+utils = { path = "../utils" }
+
 #  axum
-axum = {workspace = true}
-axum-extra = {workspace = true, features = ["typed-header"]}
-hyper = {workspace = true}
-tower = {workspace = true}
-tower-http = {workspace = true}
+silent = { workspace = true, features = ["multipart"] }
+
+http = { workspace = true }
+hyper = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
 #
-anyhow = {workspace = true}
-bytes = {workspace = true}
-futures = {workspace = true}
-# 
-chrono = {workspace = true, features = ["serde"]}
-headers = {workspace = true}
-jsonwebtoken = {workspace = true}
-once_cell = {workspace = true}
-# 
-scru128 = {workspace = true}
-serde = {workspace = true, features = ["derive"]}
-serde_json = {workspace = true}
-tokio = {workspace = true}
-tokio-stream = {workspace = true}
-#  
-toml = {workspace = true}
+anyhow = { workspace = true }
+bytes = { workspace = true }
+futures = { workspace = true }
+#
+chrono = { workspace = true, features = ["serde"] }
+headers = { workspace = true }
+jsonwebtoken = { workspace = true }
+once_cell = { workspace = true }
+#
+scru128 = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+#
+toml = { workspace = true }
 # tracing
-time = {workspace = true}
-tracing = {workspace = true}
-tracing-appender = {workspace = true}
-# 
-tracing-subscriber = {workspace = true, features = ["json", "env-filter", "local-time", "registry"]}
+time = { workspace = true }
+tracing = { workspace = true }
+tracing-appender = { workspace = true }
+#
+tracing-subscriber = { workspace = true, features = ["json", "env-filter", "local-time", "registry"] }
 
 # 计划任务
-delay_timer = {workspace = true}
-reqwest = {workspace = true, features = ["json"]}
-user-agent-parser = {workspace = true}
+delay_timer = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
+user-agent-parser = { workspace = true }
 
 #  随机数
-md5 = {workspace = true}
-rand = {workspace = true}
+md5 = { workspace = true }
+rand = { workspace = true }
 # 系统信息
-sysinfo = {workspace = true}
+sysinfo = { workspace = true }
 # 验证码
-captcha_rust = {workspace = true}
+captcha_rust = { workspace = true }
 # skyTable  可选依赖
-skytable = {workspace = true, features = ["const-gen", "aio"], optional = true}
+skytable = { workspace = true, features = ["const-gen", "aio"], optional = true }
 
 #  openApi
 # utoipa = { workspace = true, features = ["axum_extras"] }
 # utoipa-swagger-ui = {workspace = true, features = ["axum"] }
 
 # sea-orm
-sea-orm = {workspace = true, features = ["macros", "runtime-tokio-native-tls", "debug-print"]}
+sea-orm = { workspace = true, features = ["macros", "runtime-tokio-native-tls", "debug-print"] }
 
 [features]
 # default = ["postgres", "mysql"]

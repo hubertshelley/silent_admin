@@ -7,24 +7,24 @@ version.workspace = true
 
 [dependencies]
 #
-configs = {path = "../configs"}
-db = {path = "../db"}
-app-service = {path = "../service"}
-middleware-fn = {path="../middleware-fn"}
-# 
-axum = {workspace = true, features = ["multipart"]}
-tower-http = {workspace = true}
-# 
-futures = {workspace = true}
-# 
-tokio-stream = {workspace = true}
-# 
-serde_json = {workspace = true}
-# 
-headers = {workspace = true}
-# 
-tokio = {workspace = true}
+configs = { path = "../configs" }
+db = { path = "../db" }
+app-service = { path = "../service" }
+middleware-fn = { path = "../middleware-fn" }
 #
-anyhow = {workspace = true}
-# 
-reqwest = {workspace = true,  features = ["json"]}
+silent = { workspace = true }
+tower-http = { workspace = true }
+#
+futures = { workspace = true }
+#
+tokio-stream = { workspace = true }
+#
+serde_json = { workspace = true }
+#
+headers = { workspace = true }
+#
+tokio = { workspace = true }
+#
+anyhow = { workspace = true }
+#
+reqwest = { workspace = true, features = ["json"] }
