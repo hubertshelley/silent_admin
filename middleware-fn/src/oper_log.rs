@@ -11,8 +11,8 @@ use db::{
     system::entities::{prelude::SysOperLog, sys_oper_log},
     DB,
 };
-use sea_orm::{EntityTrait, Set};
 use sea_orm::prelude::async_trait;
+use sea_orm::{EntityTrait, Set};
 use silent::{MiddleWareHandler, MiddlewareResult, Request, Response, Result as SilentResult};
 
 pub struct OperLogMiddleware;
