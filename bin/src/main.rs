@@ -1,16 +1,7 @@
-// use std::time::Duration;
-
-use axum::{
-    handler::HandlerWithoutStateExt,
-    http::{Method, StatusCode},
-    routing::get_service,
-    Router,
-};
-use tower_http::{
-    compression::{predicate::NotForContentType, CompressionLayer, DefaultPredicate, Predicate},
-    cors::{Any, CorsLayer},
-    services::ServeDir,
-};
+use silent::middleware::middlewares::Cors;
+use silent::middlewares::CorsType;
+use silent::prelude::Route;
+use silent::prelude::Server;
 use tracing_subscriber::{fmt, layer::SubscriberExt, EnvFilter, Registry};
 
 use app_service::{service_utils, tasks};
@@ -51,36 +42,19 @@ fn main() {
         tasks::timer_task_init().await.expect("定时任务初始化失败");
 
         //  跨域
-        let cors = CorsLayer::new()
-            .allow_methods(vec![Method::GET, Method::POST, Method::PUT, Method::DELETE])
-            .allow_origin(Any)
-            .allow_headers(Any);
+        let cors = Cors::new().origin(CorsType::Any).methods(CorsType::Any).headers(CorsType::Any).credentials(true);
         // 顺序不对可能会导致数据丢失，无法在某些位置获取数据
-        let static_files_service = get_service(
-            ServeDir::new(&CFG.web.dir)
-                .not_found_service(handle_404.into_service())
-                .append_index_html_on_directories(true),
-        );
+        // let static_files_service = get_service(
+        //     ServeDir::new(&CFG.web.dir)
+        //         .not_found_service(handle_404.into_service())
+        //         .append_index_html_on_directories(true),
+        // );
 
-        let app = Router::new()
-            //  "/" 与所有路由冲突
-            .nest_service("/", static_files_service)
-            .nest(&CFG.server.api_prefix, api::api());
-
-        let app = match &CFG.server.content_gzip {
-            true => {
-                //  开启压缩后 SSE 数据无法返回  text/event-stream 单独处理不压缩
-                let predicate = DefaultPredicate::new().and(NotForContentType::new("text/event-stream"));
-                app.layer(CompressionLayer::new().compress_when(predicate))
-            }
-            false => app,
-        };
-        let app = app.layer(cors);
-        let listener = tokio::net::TcpListener::bind(&CFG.server.address).await.unwrap();
-        axum::serve(listener, app).await.unwrap();
+        let route = Route::new("").hook(cors).append(Route::new(&CFG.server.api_prefix).append(api::api()));
+        Server::new().bind(CFG.server.address.parse().expect("Invalid server address")).serve(route).await;
     })
 }
 
-async fn handle_404() -> (StatusCode, &'static str) {
-    (StatusCode::NOT_FOUND, "Not found")
-}
+// async fn handle_404() -> (StatusCode, &'static str) {
+//     (StatusCode::NOT_FOUND, "Not found")
+// }

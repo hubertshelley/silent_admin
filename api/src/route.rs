@@ -28,7 +28,7 @@ fn no_auth_api() -> Route {
 fn set_auth_middleware(router: Route) -> Route {
     let router = match &CFG.log.enable_oper_log {
         true => {
-            let oper_log = middleware_fn::OperLog::new();
+            let oper_log = middleware_fn::OperLog {};
             router.hook(oper_log)
         }
         false => router,
@@ -37,10 +37,10 @@ fn set_auth_middleware(router: Route) -> Route {
         0 => router,
         _ => {
             if CFG.server.cache_method == 0 {
-                let cache = middleware_fn::Cache::new();
+                let cache = middleware_fn::Cache {};
                 router.hook(cache)
             } else {
-                let cache = middleware_fn::SkyTableCache::new();
+                let cache = middleware_fn::SkyTableCache {};
                 router.hook(cache)
             }
         }
@@ -57,7 +57,7 @@ pub fn test_api() -> Route {
 
     let router = match &CFG.log.enable_oper_log {
         true => {
-            let oper_log = middleware_fn::OperLog::new();
+            let oper_log = middleware_fn::OperLog {};
             router.hook(oper_log)
         }
         false => router,

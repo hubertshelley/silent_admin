@@ -6,7 +6,7 @@ use http::StatusCode;
 use silent::prelude::FilePart;
 use silent::SilentError;
 use std::path::Path;
-use tokio::{fs, io::AsyncWriteExt};
+use tokio::fs;
 
 /// 获取验证码
 pub fn get_captcha() -> CaptchaImage {
@@ -16,15 +16,6 @@ pub fn get_captcha() -> CaptchaImage {
         captcha_on_off: true,
         uuid,
         img: captcha.base_img,
-    }
-}
-
-fn get_file_type(content_type: &str) -> String {
-    match content_type {
-        "image/jpeg" => ".jpg".to_string(),
-        "image/png" => ".png".to_string(),
-        "image/gif" => ".gif".to_string(),
-        _ => "".to_string(),
     }
 }
 

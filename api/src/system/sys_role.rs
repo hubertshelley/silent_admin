@@ -100,7 +100,7 @@ pub async fn get_by_id(mut req: Request) -> Result<Res<SysRoleResp>> {
 
 /// get_all 获取全部
 
-pub async fn get_all() -> Result<Res<Vec<SysRoleResp>>> {
+pub async fn get_all(_req: Request) -> Result<Res<Vec<SysRoleResp>>> {
     let db = DB.get_or_init(db_conn).await;
     let res = system::sys_role::get_all(db).await;
     Ok(match res {

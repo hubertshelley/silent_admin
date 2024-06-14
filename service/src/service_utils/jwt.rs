@@ -1,13 +1,12 @@
 use chrono::{Duration, Local};
 use db::common::ctx::UserInfoCtx;
 use headers::{authorization::Bearer, Authorization, HeaderMapExt};
-use http::request::Parts;
 use http::{HeaderMap, HeaderValue, StatusCode};
 use jsonwebtoken::{decode, encode, errors::ErrorKind, DecodingKey, EncodingKey, Header, Validation};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use silent::{Request, Response, Result as SilentResult, SilentError};
+use silent::{Request, Result as SilentResult, SilentError};
 
 use super::super::system::check_user_online;
 

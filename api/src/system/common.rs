@@ -9,12 +9,13 @@ use db::common::{captcha::CaptchaImage, res::Res};
 use db::system::models::server_info::SysInfo;
 #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
 use futures::stream::{self, Stream};
+use silent::{Request, Result};
 #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
 use tokio_stream::StreamExt as _;
 
-pub async fn get_captcha() -> Res<CaptchaImage> {
+pub async fn get_captcha(_req: Request) -> Result<Res<CaptchaImage>> {
     let res = system::common::get_captcha();
-    Res::with_data(res)
+    Ok(Res::with_data(res))
 }
 
 #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
