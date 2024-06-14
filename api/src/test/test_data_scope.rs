@@ -1,12 +1,10 @@
+use silent::{Request, Result};
+
 use app_service::{service_utils::jwt::Claims, test};
-use axum::{extract::Query, Json};
 use db::{
-    common::res::{ListData, PageParams, Res},
+    common::res::{ListData, Res},
     db_conn,
-    test::{
-        models::test_data_scope::{AddReq, DeleteReq, SearchReq},
-        prelude::TestDataScopeModel,
-    },
+    test::prelude::TestDataScopeModel,
     DB,
 };
 
@@ -14,30 +12,36 @@ use db::{
 /// page_params 分页参数
 /// db 数据库连接 使用db.0
 
-pub async fn get_sort_list(user: Claims, Query(page_params): Query<PageParams>, Query(req): Query<SearchReq>) -> Res<ListData<TestDataScopeModel>> {
+pub async fn get_sort_list(mut req: Request) -> Result<Res<ListData<TestDataScopeModel>>> {
+    let user = Claims::from_request_parts(&mut req).await?;
+    let page_params = req.params_parse()?;
+    let req = req.params_parse()?;
     let db = DB.get_or_init(db_conn).await;
     let res = test::test_data_scope::get_sort_list(db, page_params, req, &user.id).await;
-    match res {
+    Ok(match res {
         Ok(x) => Res::with_data(x),
         Err(e) => Res::with_err(&e.to_string()),
-    }
+    })
 }
 /// add 添加
 
-pub async fn add(user: Claims, Json(req): Json<AddReq>) -> Res<String> {
+pub async fn add(mut req: Request) -> Result<Res<String>> {
+    let user = Claims::from_request_parts(&mut req).await?;
+    let req = req.json_parse().await?;
     let db = DB.get_or_init(db_conn).await;
     let res = test::test_data_scope::add(db, req, &user.id).await;
-    match res {
+    Ok(match res {
         Ok(x) => Res::with_msg(&x),
         Err(e) => Res::with_err(&e.to_string()),
-    }
+    })
 }
 
-pub async fn delete(Json(req): Json<DeleteReq>) -> Res<String> {
+pub async fn delete(mut req: Request) -> Result<Res<String>> {
+    let req = req.json_parse().await?;
     let db = DB.get_or_init(db_conn).await;
     let res = test::test_data_scope::delete(db, req).await;
-    match res {
+    Ok(match res {
         Ok(x) => Res::with_msg(&x),
         Err(e) => Res::with_err(&e.to_string()),
-    }
+    })
 }
