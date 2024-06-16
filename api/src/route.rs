@@ -26,6 +26,9 @@ fn no_auth_api() -> Route {
 
 // 设置授权路由的中间件
 fn set_auth_middleware(router: Route) -> Route {
+    let api_auth = middleware_fn::ApiAuth {};
+    let ctx = middleware_fn::Ctx {};
+    let router = router.hook(ctx).hook(api_auth);
     let router = match &CFG.log.enable_oper_log {
         true => {
             let oper_log = middleware_fn::OperLog {};
@@ -45,9 +48,6 @@ fn set_auth_middleware(router: Route) -> Route {
             }
         }
     };
-    let api_auth = middleware_fn::ApiAuth {};
-    let ctx = middleware_fn::Ctx {};
-    let router = router.hook(api_auth).hook(ctx);
     router
 }
 

@@ -1,3 +1,4 @@
+use app_service::service_utils::jwt::Claims;
 use sea_orm::prelude::async_trait;
 use silent::{MiddleWareHandler, MiddlewareResult, Request, Response, Result as SilentResult};
 
@@ -9,6 +10,7 @@ pub struct CtxMiddleware;
 #[async_trait::async_trait]
 impl MiddleWareHandler for CtxMiddleware {
     async fn pre_request(&self, req: &mut Request, _res: &mut Response) -> SilentResult<MiddlewareResult> {
+        let _ = Claims::from_request_parts(req).await?;
         let ori_uri_path = req.uri().path().to_owned();
         let path = ori_uri_path.replacen(&(CFG.server.api_prefix.clone() + "/"), "", 1);
         let method = req.method().to_string();

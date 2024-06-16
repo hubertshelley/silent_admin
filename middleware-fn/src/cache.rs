@@ -119,9 +119,10 @@ pub struct CacheMiddleware;
 
 #[async_trait::async_trait]
 impl MiddleWareHandler for CacheMiddleware {
-    async fn pre_request(&self, req: &mut Request, _res: &mut Response) -> SilentResult<MiddlewareResult> {
+    async fn pre_request(&self, req: &mut Request, res: &mut Response) -> SilentResult<MiddlewareResult> {
         let apis = ALL_APIS.lock().await;
         let ctx = req.extensions().get::<ReqCtx>().expect("ReqCtx not found").clone();
+        res.extensions_mut().insert(ctx.clone());
         let ctx_user = match req.extensions().get::<UserInfoCtx>() {
             Some(v) => v.to_owned(),
             None => return Ok(MiddlewareResult::Continue),
@@ -145,7 +146,7 @@ impl MiddleWareHandler for CacheMiddleware {
         // 开始请求数据
         match api_info.data_cache_method.as_str() {
             "0" => Ok(MiddlewareResult::Continue),
-            _ => match crate::cache_skytable::get_cache_data(&ctx.path, &data_key).await {
+            _ => match get_cache_data(&ctx.path, &data_key).await {
                 Some(v) => {
                     let res = Response::empty().with_body(v.into());
                     Ok(MiddlewareResult::Break(res))
