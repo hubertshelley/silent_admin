@@ -11,6 +11,7 @@ pub mod cache;
 
 #[cfg(feature = "cache-skytable")]
 pub mod cache_skytable;
+mod result_wrapper;
 
 //  重新导出
 pub use auth::AuthMiddleware as ApiAuth;
@@ -20,3 +21,4 @@ pub use cache::CacheMiddleware as Cache;
 pub use cache_skytable::SkyTableCacheMiddleware as SkyTableCache;
 pub use ctx::CtxMiddleware as Ctx;
 pub use oper_log::OperLogMiddleware as OperLog;
+pub use result_wrapper::ResultWrapper;

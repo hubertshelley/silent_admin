@@ -37,6 +37,7 @@ sea-orm = { workspace = true, features = ["macros", "runtime-tokio-native-tls", 
 
 # skyTable  可选依赖
 skytable = { workspace = true, features = ["const-gen", "aio"], optional = true }
+serde_json = "1.0.117"
 
 [features]
 # default = ["postgres", "mysql"]

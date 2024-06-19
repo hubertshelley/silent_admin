@@ -1,28 +1,29 @@
 #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
 use std::{convert::Infallible, time::Duration};
 
-use app_service::system;
-#[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
-use axum::response::sse::{Event, Sse};
-use db::common::{captcha::CaptchaImage, res::Res};
-#[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
-use db::system::models::server_info::SysInfo;
 #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
 use futures::stream::{self, Stream};
 use silent::{Request, Result};
 #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
 use tokio_stream::StreamExt as _;
 
-pub async fn get_captcha(_req: Request) -> Result<Res<CaptchaImage>> {
+use app_service::system;
+#[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+use axum::response::sse::{Event, Sse};
+use db::common::captcha::CaptchaImage;
+#[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+use db::system::models::server_info::SysInfo;
+
+pub async fn get_captcha(_req: Request) -> Result<CaptchaImage> {
     let res = system::common::get_captcha();
-    Ok(Res::with_data(res))
+    Ok(res)
 }
 
 #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
-pub async fn get_server_info() -> Res<SysInfo> {
+pub async fn get_server_info() -> Result<SysInfo> {
     let res = system::server_info::get_oper_sys_info();
 
-    Res::with_data(res)
+    Ok(res)
 }
 
 //  这个不知道为啥有问题

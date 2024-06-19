@@ -12,7 +12,7 @@ use db::{
 /// page_params 分页参数
 /// db 数据库连接 使用db.0
 
-pub async fn get_sort_list(mut req: Request) -> Result<Res<ListData<TestDataScopeModel>>> {
+pub async fn get_sort_list(mut req: Request) -> Result<ListData<TestDataScopeModel>>> {
     let user = Claims::from_request_parts(&mut req).await?;
     let page_params = req.params_parse()?;
     let req = req.params_parse()?;
@@ -25,7 +25,7 @@ pub async fn get_sort_list(mut req: Request) -> Result<Res<ListData<TestDataScop
 }
 /// add 添加
 
-pub async fn add(mut req: Request) -> Result<Res<String>> {
+pub async fn add(mut req: Request) -> Result<String>> {
     let user = Claims::from_request_parts(&mut req).await?;
     let req = req.json_parse().await?;
     let db = DB.get_or_init(db_conn).await;
@@ -36,7 +36,7 @@ pub async fn add(mut req: Request) -> Result<Res<String>> {
     })
 }
 
-pub async fn delete(mut req: Request) -> Result<Res<String>> {
+pub async fn delete(mut req: Request) -> Result<String>> {
     let req = req.json_parse().await?;
     let db = DB.get_or_init(db_conn).await;
     let res = test::test_data_scope::delete(db, req).await;

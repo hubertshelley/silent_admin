@@ -5,7 +5,10 @@ use configs::CFG;
 use super::{system, test};
 
 pub fn api() -> Route {
+    let result_wrapper = middleware_fn::ResultWrapper::new();
+    // 路由配置
     Route::new("")
+        .hook(result_wrapper)
         // 文件上传api
         // .nest_service(&CFG.web.upload_url, get_service(ServeDir::new(&CFG.web.upload_dir)))
         // 无需授权Api.通用模块
