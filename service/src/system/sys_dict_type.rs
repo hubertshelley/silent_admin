@@ -23,11 +23,11 @@ pub async fn get_sort_list(db: &DatabaseConnection, page_params: PageParams, req
     let mut s = SysDictType::find();
 
     if let Some(x) = req.dict_type {
-        s = s.filter(sys_dict_type::Column::DictType.contains(&x));
+        s = s.filter(sys_dict_type::Column::DictType.contains(x));
     }
 
     if let Some(x) = req.dict_name {
-        s = s.filter(sys_dict_type::Column::DictName.contains(&x));
+        s = s.filter(sys_dict_type::Column::DictName.contains(x));
     }
     if let Some(x) = req.status {
         s = s.filter(sys_dict_type::Column::Status.eq(x));

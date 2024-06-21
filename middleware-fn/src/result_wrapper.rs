@@ -3,6 +3,7 @@ use sea_orm::prelude::async_trait;
 use silent::prelude::ResBody;
 use silent::{MiddleWareHandler, MiddlewareResult, Response, Result};
 
+#[derive(Default)]
 pub struct ResultWrapper;
 
 impl ResultWrapper {

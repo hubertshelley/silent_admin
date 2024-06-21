@@ -47,7 +47,7 @@ pub struct Claims {
 impl Claims {
     /// 将用户信息注入request
     pub async fn from_request_parts(req: &mut Request) -> SilentResult<Self> {
-        let (_, token_v) = get_bear_token(req.headers_mut()).await.map_err(|e| <AuthError as Into<SilentError>>::into(e))?;
+        let (_, token_v) = get_bear_token(req.headers_mut()).await?;
         // Decode the user data
 
         let token_data = match decode::<Claims>(&token_v, &KEYS.decoding, &Validation::default()) {
@@ -116,9 +116,10 @@ pub enum AuthError {
     InvalidToken,
     CheckOutToken,
 }
-impl Into<SilentError> for AuthError {
-    fn into(self) -> SilentError {
-        let (status, error_message) = match self {
+
+impl From<AuthError> for SilentError {
+    fn from(value: AuthError) -> Self {
+        let (status, error_message) = match value {
             AuthError::WrongCredentials => (StatusCode::UNAUTHORIZED, "Wrong credentials"),
             AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
             AuthError::TokenCreation => (StatusCode::INTERNAL_SERVER_ERROR, "Token creation error"),

@@ -155,10 +155,10 @@ pub async fn get_un_auth_user(db: &DatabaseConnection, page_params: PageParams, 
         s = s.filter(sys_user::Column::Id.is_not_in(y));
     }
     if let Some(x) = req.user_name {
-        s = s.filter(sys_user::Column::UserName.contains(&x));
+        s = s.filter(sys_user::Column::UserName.contains(x));
     }
     if let Some(x) = req.phone_num {
-        s = s.filter(sys_user::Column::UserName.contains(&x));
+        s = s.filter(sys_user::Column::UserName.contains(x));
     }
     // 获取全部数据条数
     let total = s.clone().count(db).await?;
@@ -511,19 +511,19 @@ pub async fn login(db: &DatabaseConnection, login_req: UserLoginReq, header: Hea
     let mut msg = "登录成功".to_string();
     let mut status = "1".to_string();
     // 验证验证码
-    if utils::encrypt_password(&login_req.code, "") != login_req.uuid {
+    if utils::encrypt_password(&login_req.code.to_lowercase(), "") != login_req.uuid {
         msg = "验证码错误".to_string();
         status = "0".to_string();
-        set_login_info(header, "".to_string(), login_req.user_name.clone(), msg.clone(), status.clone(), None, None).await;
+        set_login_info(header, "".to_string(), login_req.username.clone(), msg.clone(), status.clone(), None, None).await;
         return Err(anyhow!("验证码错误"));
     }
     // 根据用户名获取用户信息
-    let user = match SysUser::find().filter(sys_user::Column::UserName.eq(login_req.user_name.clone())).one(db).await? {
+    let user = match SysUser::find().filter(sys_user::Column::UserName.eq(login_req.username.clone())).one(db).await? {
         Some(user) => {
             if &user.user_status == "0" {
                 msg = "用户已被禁用".to_string();
                 status = "0".to_string();
-                set_login_info(header, "".to_string(), login_req.user_name.clone(), msg.clone(), status.clone(), None, None).await;
+                set_login_info(header, "".to_string(), login_req.username.clone(), msg.clone(), status.clone(), None, None).await;
                 return Err(anyhow!("用户已被禁用"));
             } else {
                 user
@@ -532,21 +532,21 @@ pub async fn login(db: &DatabaseConnection, login_req: UserLoginReq, header: Hea
         None => {
             msg = "用户不存在".to_string();
             status = "0".to_string();
-            set_login_info(header, "".to_string(), login_req.user_name.clone(), msg.clone(), status.clone(), None, None).await;
+            set_login_info(header, "".to_string(), login_req.username.clone(), msg.clone(), status.clone(), None, None).await;
             return Err(anyhow!("用户不存在"));
         }
     };
     //  验证密码是否正确
-    if utils::encrypt_password(&login_req.user_password, &user.user_salt) != user.user_password {
+    if utils::encrypt_password(&login_req.password, &user.user_salt) != user.user_password {
         msg = "密码错误".to_string();
         status = "0".to_string();
-        set_login_info(header, "".to_string(), login_req.user_name.clone(), msg.clone(), status.clone(), None, None).await;
+        set_login_info(header, "".to_string(), login_req.username.clone(), msg.clone(), status.clone(), None, None).await;
         return Err(anyhow!("密码不正确"));
     };
     // 注册JWT
     let claims = AuthPayload {
-        id: user.id.clone(),               // 用户id
-        name: login_req.user_name.clone(), // 用户名
+        id: user.id.clone(),              // 用户id
+        name: login_req.username.clone(), // 用户名
     };
     let token_id = scru128::new_string();
     let token = service_utils::authorize(claims.clone(), token_id.clone()).await.unwrap();
@@ -556,7 +556,7 @@ pub async fn login(db: &DatabaseConnection, login_req: UserLoginReq, header: Hea
     set_login_info(
         header,
         user.id.to_string(),
-        login_req.user_name.clone(),
+        login_req.username.clone(),
         msg.clone(),
         status.clone(),
         Some(token_id),

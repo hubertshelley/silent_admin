@@ -1,12 +1,7 @@
 use silent::{Request, Result};
 
 use app_service::system;
-use db::{
-    common::res::{ListData, Res},
-    db_conn,
-    system::prelude::SysLoginLogModel,
-    DB,
-};
+use db::{common::res::ListData, db_conn, system::prelude::SysLoginLogModel, DB};
 
 /// get_list 获取列表
 /// page_params 分页参数

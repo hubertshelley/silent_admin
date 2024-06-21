@@ -1,7 +1,8 @@
 use silent::middleware::middlewares::Cors;
 use silent::middlewares::CorsType;
-use silent::prelude::Route;
-use silent::prelude::Server;
+use silent::prelude::{full, Server};
+use silent::prelude::{Route, RouteService};
+use silent::{Configs, Response, SilentError, StatusCode};
 use tracing_subscriber::{fmt, layer::SubscriberExt, EnvFilter, Registry};
 
 use app_service::{service_utils, tasks};
@@ -50,11 +51,15 @@ fn main() {
         //         .append_index_html_on_directories(true),
         // );
 
-        let route = Route::new("").hook(cors).append(Route::new(&CFG.server.api_prefix).append(api::api()));
+        let route = Route::new("")
+            .hook(cors)
+            .append(Route::new(&CFG.server.api_prefix).append(api::api()))
+            .route()
+            .set_exception_handler(api::exception_handler);
+
         Server::new().bind(CFG.server.address.parse().expect("Invalid server address")).serve(route).await;
     })
 }
-
 // async fn handle_404() -> (StatusCode, &'static str) {
 //     (StatusCode::NOT_FOUND, "Not found")
 // }

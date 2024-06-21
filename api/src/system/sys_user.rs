@@ -1,6 +1,6 @@
 use headers::HeaderMap;
 use silent::Result;
-use silent::{Request, SilentError, StatusCode};
+use silent::{Request, SilentError};
 use tokio::join;
 
 use app_service::{
@@ -8,7 +8,7 @@ use app_service::{
     system,
 };
 use db::{
-    common::res::{ListData, Res},
+    common::res::ListData,
     db_conn,
     system::models::sys_user::{
         ChangeDeptReq, ChangeRoleReq, ChangeStatusReq, ResetPwdReq, SysUserSearchReq, UpdateProfileReq, UserInfo, UserInformation, UserLoginReq, UserWithDept,
@@ -32,7 +32,7 @@ pub async fn get_sort_list(mut req: Request) -> Result<ListData<UserWithDept>> {
 pub async fn get_by_id(mut req: Request) -> Result<UserInformation> {
     let req: SysUserSearchReq = req.params_parse()?;
     let db = DB.get_or_init(db_conn).await;
-    let user_id = req.user_id.ok_or("用户id不能为空".into());
+    let user_id = req.user_id.ok_or::<SilentError>("用户id不能为空".to_string().into())?;
     let res = system::sys_user::get_user_info_by_id(db, &user_id).await;
     res.map_err(|e| e.into())
 }
@@ -159,8 +159,8 @@ pub async fn change_dept(mut req: Request) -> Result<String> {
 
 pub async fn update_avatar(mut req: Request) -> Result<String> {
     let user = Claims::from_request_parts(&mut req).await?;
-    let file_part = req.files("files").await.ok_or("请上传文件".into())?.first();
-    let file_part = file_part.ok_or("请上传文件".into())?;
+    let file_part = req.files("files").await.ok_or::<SilentError>("请上传文件".to_string().into())?.first();
+    let file_part = file_part.ok_or::<SilentError>("请上传文件".to_string().into())?;
     let res = system::common::upload_file(file_part).await?;
     let db = DB.get_or_init(db_conn).await;
     let res = system::sys_user::update_avatar(db, &res, &user.id).await;

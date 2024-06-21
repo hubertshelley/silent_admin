@@ -1,13 +1,8 @@
-use silent::{Request, Result};
+use silent::{Request, Result, SilentError};
 
 use app_service::system;
 use db::system::models::sys_oper_log::SysOperLogSearchReq;
-use db::{
-    common::res::{ListData, Res},
-    db_conn,
-    system::prelude::SysOperLogModel,
-    DB,
-};
+use db::{common::res::ListData, db_conn, system::prelude::SysOperLogModel, DB};
 
 /// get_list 获取列表
 /// page_params 分页参数
@@ -43,7 +38,7 @@ pub async fn clean(_req: Request) -> Result<String> {
 pub async fn get_by_id(mut req: Request) -> Result<SysOperLogModel> {
     let req: SysOperLogSearchReq = req.params_parse()?;
     //  数据验证
-    let id = req.oper_id.ok_or("id不能为空".into())?;
+    let id = req.oper_id.ok_or::<SilentError>("id不能为空".to_string().into())?;
     let db = DB.get_or_init(db_conn).await;
     let res = system::sys_oper_log::get_by_id(db, id).await;
     res.map_err(|e| e.into())

@@ -1,9 +1,9 @@
-use silent::{Request, Result};
+use silent::{Request, Result, SilentError};
 
 use app_service::{service_utils::jwt::Claims, system, tasks};
 use db::system::models::sys_job::JobId;
 use db::{
-    common::res::{ListData, Res},
+    common::res::ListData,
     db_conn,
     system::{
         models::sys_job::{SysJobSearchReq, SysJobStatusReq, ValidateReq, ValidateRes},
@@ -57,7 +57,7 @@ pub async fn edit(mut req: Request) -> Result<String> {
 
 pub async fn get_by_id(mut req: Request) -> Result<SysJobModel> {
     let req: SysJobSearchReq = req.params_parse()?;
-    let id = req.job_id.ok_or("id不能为空".into())?;
+    let id = req.job_id.ok_or::<SilentError>("id不能为空".to_string().into())?;
     let db = DB.get_or_init(db_conn).await;
     let res = system::sys_job::get_by_id(db, id).await;
     res.map_err(|e| e.into())

@@ -19,11 +19,11 @@ pub async fn get_sort_list(db: &DatabaseConnection, page_params: PageParams, sea
     let mut s = TestDataScope::find();
 
     if let Some(x) = search_req.data_a {
-        s = s.filter(test_data_scope::Column::DataA.contains(&x));
+        s = s.filter(test_data_scope::Column::DataA.contains(x));
     }
 
     if let Some(x) = search_req.data_b {
-        s = s.filter(test_data_scope::Column::DataB.contains(&x));
+        s = s.filter(test_data_scope::Column::DataB.contains(x));
     }
     let user_ids = utils::data_scope::get_data_scope_user_ids(db, user_id).await?;
 

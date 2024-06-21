@@ -11,7 +11,7 @@ use tokio::fs;
 /// 获取验证码
 pub fn get_captcha() -> CaptchaImage {
     let captcha = Captcha::new(4, 130, 40);
-    let uuid = utils::encrypt_password(&captcha.text, "");
+    let uuid = utils::encrypt_password(&captcha.text.to_lowercase(), "");
     CaptchaImage {
         captcha_on_off: true,
         uuid,
@@ -22,12 +22,12 @@ pub fn get_captcha() -> CaptchaImage {
 /// 上传相关
 pub async fn upload_file(file_part: &FilePart) -> Result<String> {
     let res: Result<String> = {
-        let file_type = file_part.name().unwrap_or_else(|| "").split(".").last().unwrap_or_else(|| "");
+        let file_type = file_part.name().unwrap_or("").split('.').last().unwrap_or("");
         let now = chrono::Local::now();
         let file_path_t = CFG.web.upload_dir.clone() + "/" + &now.format("%Y-%m").to_string();
         let url_path_t = CFG.web.upload_url.clone() + "/" + &now.format("%Y-%m").to_string();
         fs::create_dir_all(&file_path_t).await?;
-        let file_name = now.format("%d").to_string() + "-" + &scru128::new_string() + "." + &file_type;
+        let file_name = now.format("%d").to_string() + "-" + &scru128::new_string() + "." + file_type;
         let file_path = file_path_t + "/" + &file_name;
         let url_path = url_path_t + "/" + &file_name;
         // todo: 优化异步上传

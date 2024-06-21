@@ -3,7 +3,7 @@ use silent::{Request, Result};
 use app_service::{service_utils::jwt::Claims, system};
 use configs::CFG;
 use db::{
-    common::res::{ListData, PageParams, Res},
+    common::res::{ListData, PageParams},
     db_conn,
     system::{
         models::sys_menu::{LogCacheEditReq, MenuRelated, MenuResp, SysMenuDeleteReq, SysMenuEditReq, SysMenuSearchReq, SysMenuTree, SysMenuTreeAll},

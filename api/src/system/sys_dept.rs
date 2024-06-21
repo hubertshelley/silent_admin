@@ -1,16 +1,17 @@
-use silent::{Request, Result};
+use anyhow::anyhow;
+use silent::{Request, Result, SilentError};
 
 use app_service::{service_utils::jwt::Claims, system};
+use db::system::models::sys_dept::SysDeptSearchReq;
 use db::{
     common::res::ListData,
-    DB,
     db_conn,
     system::{
         models::sys_dept::{DeptResp, RespTree},
         prelude::SysDeptModel,
     },
+    DB,
 };
-use db::system::models::sys_dept::SysDeptSearchReq;
 
 /// get_list 获取列表
 /// page_params 分页参数
@@ -58,7 +59,7 @@ pub async fn edit(mut req: Request) -> Result<String> {
 pub async fn get_by_id(mut req: Request) -> Result<DeptResp> {
     let req: SysDeptSearchReq = req.params_parse()?;
     let db = DB.get_or_init(db_conn).await;
-    let dept_id = req.dept_id.ok_or(String::from("参数错误").into())?;
+    let dept_id = req.dept_id.ok_or::<SilentError>(anyhow!("参数错误").into())?;
     let res = system::sys_dept::get_by_id(db, &dept_id).await;
     res.map_err(|e| e.into())
 }

@@ -1,8 +1,8 @@
-use silent::{Request, Result};
+use silent::{Request, Result, SilentError};
 
 use app_service::{service_utils::jwt::Claims, system};
 use db::{
-    common::res::{ListData, Res},
+    common::res::ListData,
     db_conn,
     system::{
         models::sys_role::{SysRoleResp, SysRoleSearchReq},
@@ -90,7 +90,7 @@ pub async fn get_all(_req: Request) -> Result<Vec<SysRoleResp>> {
 pub async fn get_role_menu(mut req: Request) -> Result<Vec<String>> {
     let req: SysRoleSearchReq = req.params_parse()?;
     let db = DB.get_or_init(db_conn).await;
-    let role_id = req.role_id.ok_or("role_id不能为空".into())?;
+    let role_id = req.role_id.ok_or::<SilentError>("role_id不能为空".to_string().into())?;
     let api_ids = match system::sys_menu::get_role_permissions(db, &role_id).await {
         Ok((_, x)) => x,
         Err(e) => return Err(e.into()),
@@ -102,7 +102,7 @@ pub async fn get_role_menu(mut req: Request) -> Result<Vec<String>> {
 
 pub async fn get_role_dept(mut req: Request) -> Result<Vec<String>> {
     let req: SysRoleSearchReq = req.params_parse()?;
-    let role_id = req.role_id.ok_or("role_id不能为空".into())?;
+    let role_id = req.role_id.ok_or::<SilentError>("role_id不能为空".to_string().into())?;
     let db = DB.get_or_init(db_conn).await;
     let res = system::sys_dept::get_dept_by_role_id(db, role_id).await;
     res.map_err(|e| e.into())

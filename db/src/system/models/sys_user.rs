@@ -107,9 +107,9 @@ pub struct SysUserDeleteReq {
 #[derive(Deserialize, Debug)]
 pub struct UserLoginReq {
     ///  用户名
-    pub user_name: String,
+    pub username: String,
     ///  用户密码
-    pub user_password: String,
+    pub password: String,
     pub code: String,
     pub uuid: String,
 }

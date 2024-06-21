@@ -2,7 +2,7 @@ use silent::{Request, Result};
 
 use app_service::{service_utils::jwt::Claims, system};
 use db::{
-    common::res::{ListData, Res},
+    common::res::ListData,
     db_conn,
     system::{models::sys_post::SysPostResp, prelude::SysPostModel},
     DB,

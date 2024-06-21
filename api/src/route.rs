@@ -39,7 +39,7 @@ fn set_auth_middleware(router: Route) -> Route {
         }
         false => router,
     };
-    let router = match CFG.server.cache_time {
+    match CFG.server.cache_time {
         0 => router,
         _ => {
             if CFG.server.cache_method == 0 {
@@ -50,8 +50,7 @@ fn set_auth_middleware(router: Route) -> Route {
                 router.hook(cache)
             }
         }
-    };
-    router
+    }
 }
 
 // 测试api

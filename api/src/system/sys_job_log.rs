@@ -2,7 +2,7 @@ use silent::{Request, Result};
 
 use app_service::system;
 use db::{
-    common::res::{ListData, Res},
+    common::res::ListData,
     db_conn,
     system::{models::sys_job_log::SysJobLogCleanReq, prelude::SysJobLogModel},
     DB,
