@@ -59,13 +59,13 @@ impl ColumnTrait for Column {
     type EntityName = Entity;
     fn def(&self) -> ColumnDef {
         match self {
-            Self::DictTypeId => ColumnType::String(Some(32u32)).def(),
-            Self::DictName => ColumnType::String(Some(100u32)).def(),
-            Self::DictType => ColumnType::String(Some(100u32)).def().unique(),
+            Self::DictTypeId => ColumnType::String(StringLen::N(32u32)).def(),
+            Self::DictName => ColumnType::String(StringLen::N(100u32)).def(),
+            Self::DictType => ColumnType::String(StringLen::N(100u32)).def().unique(),
             Self::Status => ColumnType::Char(Some(1u32)).def(),
-            Self::CreateBy => ColumnType::String(Some(32u32)).def(),
-            Self::UpdateBy => ColumnType::String(Some(32u32)).def().null(),
-            Self::Remark => ColumnType::String(Some(500u32)).def().null(),
+            Self::CreateBy => ColumnType::String(StringLen::N(32u32)).def(),
+            Self::UpdateBy => ColumnType::String(StringLen::N(32u32)).def().null(),
+            Self::Remark => ColumnType::String(StringLen::N(500u32)).def().null(),
             Self::CreatedAt => ColumnType::DateTime.def().null(),
             Self::UpdatedAt => ColumnType::DateTime.def().null(),
             Self::DeletedAt => ColumnType::DateTime.def().null(),

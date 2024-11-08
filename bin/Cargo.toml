@@ -15,7 +15,7 @@ utils = { path = "../utils" }
 app-service = { path = "../service" }
 
 # axum
-silent = { workspace = true }
+silent = { workspace = true, features = ["static"] }
 
 hyper = { workspace = true }
 rustls-pemfile = { workspace = true }
@@ -25,7 +25,7 @@ tokio = { workspace = true, features = ["rt-multi-thread", "macros", "parking_lo
 tower-http = { workspace = true, features = ["cors", "fs", "compression-gzip"] }  #compression-gzip
 tower = { workspace = true, features = ["make"] }
 tower-service = { workspace = true }
-futures-util = { workspace = true, default-features = false }
+futures-util = { workspace = true }
 
 #
 tracing = { workspace = true }

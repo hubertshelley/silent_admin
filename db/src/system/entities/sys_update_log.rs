@@ -57,15 +57,15 @@ impl ColumnTrait for Column {
     type EntityName = Entity;
     fn def(&self) -> ColumnDef {
         match self {
-            Self::Id => ColumnType::String(Some(32u32)).def(),
-            Self::AppVersion => ColumnType::String(Some(10u32)).def(),
-            Self::BackendVersion => ColumnType::String(Some(10u32)).def(),
-            Self::Title => ColumnType::String(Some(100u32)).def(),
+            Self::Id => ColumnType::String(StringLen::N(32u32)).def(),
+            Self::AppVersion => ColumnType::String(StringLen::N(10u32)).def(),
+            Self::BackendVersion => ColumnType::String(StringLen::N(10u32)).def(),
+            Self::Title => ColumnType::String(StringLen::N(100u32)).def(),
             Self::Content => ColumnType::Text.def(),
             Self::CreatedAt => ColumnType::DateTime.def(),
             Self::UpdatedAt => ColumnType::DateTime.def(),
             Self::DeletedAt => ColumnType::DateTime.def().null(),
-            Self::UpdatedBy => ColumnType::String(Some(32u32)).def(),
+            Self::UpdatedBy => ColumnType::String(StringLen::N(32u32)).def(),
         }
     }
 }

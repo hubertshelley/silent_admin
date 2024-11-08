@@ -1,11 +1,11 @@
 use md5;
-use rand::Rng;
+use rand::{thread_rng, Rng};
 ///  生成指定长度的字符串
 pub fn rand_s(length: usize) -> String {
     const CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
                             abcdefghijklmnopqrstuvwxyz\
                             0123456789)(*&^%$#@!~";
-    let mut rng = rand::thread_rng();
+    let mut rng = thread_rng();
 
     let rand_string: String = (0..length)
         .map(|_| {

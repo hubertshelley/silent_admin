@@ -73,6 +73,11 @@ pub async fn get_sort_list(db: &DatabaseConnection, page_params: PageParams, req
             s = s.filter(sys_user::Column::DeptId.eq(x));
         }
     }
+    if let Some(x) = req.dept_ids {
+        if !x.is_empty() {
+            s = s.filter(sys_user::Column::DeptId.is_in(x));
+        }
+    }
     if let Some(x) = req.begin_time {
         if !x.is_empty() {
             let x = x + " 00:00:00";
@@ -342,20 +347,19 @@ pub async fn update_passwd(db: &DatabaseConnection, req: UpdatePwdReq, user_id: 
         None => return Err(anyhow!("用户不存在")),
         Some(x) => {
             let pwd = utils::encrypt_password(&req.old_passwd, &x.user_salt);
-            match pwd == x.user_password {
-                false => return Err(anyhow!("旧密码错误,请检查重新输入")),
-                true => {}
+            if pwd != x.user_password {
+                return Err(anyhow!("旧密码错误,请检查重新输入"));
             }
         }
     };
-    self::reset_passwd(
+    reset_passwd(
         db,
         ResetPwdReq {
             user_id: user_id.to_string(),
             new_passwd: req.new_passwd,
         },
     )
-    .await
+        .await
 }
 
 pub async fn change_status(db: &DatabaseConnection, req: ChangeStatusReq) -> Result<String> {
@@ -562,7 +566,7 @@ pub async fn login(db: &DatabaseConnection, login_req: UserLoginReq, header: Hea
         Some(token_id),
         Some(token.clone()),
     )
-    .await;
+        .await;
 
     Ok(token)
 }
@@ -600,7 +604,7 @@ pub async fn set_login_info(header: HeaderMap, u_id: String, user: String, msg: 
 
 /// 按id 获取用户信息
 pub async fn get_user_info_by_id(db: &DatabaseConnection, id: &str) -> Result<UserInformation> {
-    match self::get_by_id(db, id).await {
+    match get_by_id(db, id).await {
         Err(e) => Err(e),
         Ok(user) => {
             let (post_ids_r, role_ids_r, dept_ids_r) = join!(
@@ -635,7 +639,7 @@ pub async fn get_user_info_by_id(db: &DatabaseConnection, id: &str) -> Result<Us
 /// 获取用户信息以及权限
 pub async fn get_user_info_permission(db: &DatabaseConnection, user_id: &str) -> Result<(UserWithDept, Vec<String>)> {
     //  获取用户信息
-    let user_info = self::get_by_id(db, user_id).await?;
+    let user_info = get_by_id(db, user_id).await?;
 
     // 检查是否超管用户
     let permissions = if CFG.system.super_user.contains(&user_id.to_string()) {

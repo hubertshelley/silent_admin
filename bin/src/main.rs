@@ -1,8 +1,7 @@
 use silent::middleware::middlewares::Cors;
 use silent::middlewares::CorsType;
-use silent::prelude::{full, Server};
 use silent::prelude::{Route, RouteService};
-use silent::{Configs, Response, SilentError, StatusCode};
+use silent::prelude::Server;
 use tracing_subscriber::{fmt, layer::SubscriberExt, EnvFilter, Registry};
 
 use app_service::{service_utils, tasks};
@@ -54,9 +53,9 @@ fn main() {
         let route = Route::new("")
             .hook(cors)
             .append(Route::new(&CFG.server.api_prefix).append(api::api()))
+            .append(Route::new("").with_static(&CFG.web.dir))
             .route()
             .set_exception_handler(api::exception_handler);
-
         Server::new().bind(CFG.server.address.parse().expect("Invalid server address")).serve(route).await;
     })
 }

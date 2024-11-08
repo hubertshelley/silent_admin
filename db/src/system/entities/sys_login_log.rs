@@ -63,18 +63,18 @@ impl ColumnTrait for Column {
     type EntityName = Entity;
     fn def(&self) -> ColumnDef {
         match self {
-            Self::InfoId => ColumnType::String(Some(32u32)).def(),
-            Self::LoginName => ColumnType::String(Some(50u32)).def(),
-            Self::Net => ColumnType::String(Some(100u32)).def(),
-            Self::Ipaddr => ColumnType::String(Some(50u32)).def(),
-            Self::LoginLocation => ColumnType::String(Some(255u32)).def(),
-            Self::Browser => ColumnType::String(Some(50u32)).def(),
-            Self::Os => ColumnType::String(Some(50u32)).def(),
-            Self::Device => ColumnType::String(Some(50u32)).def(),
+            Self::InfoId => ColumnType::String(StringLen::N(32u32)).def(),
+            Self::LoginName => ColumnType::String(StringLen::N(50u32)).def(),
+            Self::Net => ColumnType::String(StringLen::N(100u32)).def(),
+            Self::Ipaddr => ColumnType::String(StringLen::N(50u32)).def(),
+            Self::LoginLocation => ColumnType::String(StringLen::N(255u32)).def(),
+            Self::Browser => ColumnType::String(StringLen::N(50u32)).def(),
+            Self::Os => ColumnType::String(StringLen::N(50u32)).def(),
+            Self::Device => ColumnType::String(StringLen::N(50u32)).def(),
             Self::Status => ColumnType::Char(Some(1u32)).def(),
-            Self::Msg => ColumnType::String(Some(255u32)).def(),
+            Self::Msg => ColumnType::String(StringLen::N(255u32)).def(),
             Self::LoginTime => ColumnType::DateTime.def(),
-            Self::Module => ColumnType::String(Some(30u32)).def(),
+            Self::Module => ColumnType::String(StringLen::N(30u32)).def(),
         }
     }
 }

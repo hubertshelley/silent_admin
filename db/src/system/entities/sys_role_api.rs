@@ -51,11 +51,11 @@ impl ColumnTrait for Column {
     type EntityName = Entity;
     fn def(&self) -> ColumnDef {
         match self {
-            Self::Id => ColumnType::String(Some(32u32)).def(),
-            Self::RoleId => ColumnType::String(Some(32u32)).def(),
-            Self::Api => ColumnType::String(Some(255u32)).def(),
-            Self::Method => ColumnType::String(Some(10u32)).def().null(),
-            Self::CreatedBy => ColumnType::String(Some(32u32)).def(),
+            Self::Id => ColumnType::String(StringLen::N(32u32)).def(),
+            Self::RoleId => ColumnType::String(StringLen::N(32u32)).def(),
+            Self::Api => ColumnType::String(StringLen::N(255u32)).def(),
+            Self::Method => ColumnType::String(StringLen::N(10u32)).def().null(),
+            Self::CreatedBy => ColumnType::String(StringLen::N(32u32)).def(),
             Self::CreatedAt => ColumnType::DateTime.def(),
         }
     }

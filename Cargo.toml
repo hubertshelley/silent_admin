@@ -11,7 +11,6 @@ members = [
 ]
 resolver = "2"
 
-
 [workspace.package]
 authors = ["hubertshelley <hubertshelley@163.com>"]
 edition = "2021"
@@ -20,7 +19,6 @@ license = "Apache-2.0"
 publish = false
 repository = "https://github.com/hubertshelley/silent_admin.git"
 version = "0.1.0"
-default-run = "silent-admin"
 
 [workspace.dependencies]
 # silent
@@ -84,7 +82,7 @@ skytable = "0"
 futures-util = "0"
 
 # sea-orm
-sea-orm = "0"
+sea-orm = "1"
 
 
 

@@ -12,7 +12,7 @@ db = { path = "../db" }
 app-service = { path = "../service" }
 middleware-fn = { path = "../middleware-fn" }
 #
-silent = { workspace = true }
+silent = { workspace = true, features = ["sse"] }
 tower-http = { workspace = true }
 #
 futures = { workspace = true }

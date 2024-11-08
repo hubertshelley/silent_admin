@@ -170,16 +170,10 @@ fn sys_api_db_api() -> Route {
         .append(Route::new("add").post(sys_api_db::add)) // 添加
 }
 
-#[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
 fn sys_monitor_api() -> Route {
     Route::new("")
         .append(Route::new("server").get(common::get_server_info)) // 服务器信息
         .append(Route::new("server-event").get(common::get_server_info_sse)) // 服务器信息(SSE)
-}
-
-#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-fn sys_monitor_api() -> Route {
-    Route::new("")
 }
 
 fn sys_update_log_api() -> Route {

@@ -94,6 +94,7 @@ pub struct SysUserSearchReq {
     pub user_nickname: Option<String>,
     pub user_status: Option<String>,
     pub dept_id: Option<String>,
+    pub dept_ids: Option<Vec<String>>,
     pub begin_time: Option<String>,
     pub end_time: Option<String>,
 }

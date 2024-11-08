@@ -61,14 +61,14 @@ impl ColumnTrait for Column {
     type EntityName = Entity;
     fn def(&self) -> ColumnDef {
         match self {
-            Self::PostId => ColumnType::String(Some(32u32)).def(),
-            Self::PostCode => ColumnType::String(Some(64u32)).def(),
-            Self::PostName => ColumnType::String(Some(50u32)).def(),
+            Self::PostId => ColumnType::String(StringLen::N(32u32)).def(),
+            Self::PostCode => ColumnType::String(StringLen::N(64u32)).def(),
+            Self::PostName => ColumnType::String(StringLen::N(50u32)).def(),
             Self::PostSort => ColumnType::Integer.def(),
             Self::Status => ColumnType::Char(Some(1u32)).def(),
-            Self::Remark => ColumnType::String(Some(500u32)).def().null(),
-            Self::CreatedBy => ColumnType::String(Some(32u32)).def(),
-            Self::UpdatedBy => ColumnType::String(Some(32u32)).def().null(),
+            Self::Remark => ColumnType::String(StringLen::N(500u32)).def().null(),
+            Self::CreatedBy => ColumnType::String(StringLen::N(32u32)).def(),
+            Self::UpdatedBy => ColumnType::String(StringLen::N(32u32)).def().null(),
             Self::CreatedAt => ColumnType::DateTime.def().null(),
             Self::UpdatedAt => ColumnType::DateTime.def().null(),
             Self::DeletedAt => ColumnType::DateTime.def().null(),

@@ -1,8 +1,9 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::borrow::Cow;
 
 use configs::CFG;
 use db::common::client::{ClientInfo, ClientNetInfo, UserAgentInfo};
 use headers::HeaderMap;
+use serde::{Deserialize, Serialize};
 use user_agent_parser::UserAgentParser;
 
 pub async fn get_client_info(header: HeaderMap) -> ClientInfo {
@@ -44,14 +45,34 @@ pub fn get_user_agent_info(user_agent: &str) -> UserAgentInfo {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+struct NetInfo {
+    pub continent: String,
+    pub country: String,
+    pub zipcode: String,
+    pub owner: String,
+    pub isp: String,
+    pub adcode: String,
+    pub prov: String,
+    pub city: String,
+    pub district: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct NetInfoResponse {
+    pub code: String,
+    pub data: NetInfo,
+    pub ip: String,
+}
+
 async fn get_city_by_ip(ip: &str) -> Result<ClientNetInfo, Box<dyn std::error::Error>> {
-    let url = "http://whois.pconline.com.cn/ipJson.jsp?json=true&ip=".to_string() + ip;
+    let url = "https://qifu-api.baidubce.com/ip/local/geo/v1/district?ip=".to_string() + ip;
     let resp = reqwest::get(url.as_str()).await?.text_with_charset("utf-8").await?;
-    let res = serde_json::from_str::<HashMap<String, String>>(resp.as_str())?;
-    let location = format!("{}{}", res["pro"], res["city"]);
-    let net_work = res["addr"].split(' ').collect::<Vec<&str>>()[1].to_string();
+    let res = serde_json::from_str::<NetInfoResponse>(resp.as_str())?;
+    let location = format!("{}{}{}", res.data.prov, res.data.city, res.data.district);
+    let net_work = res.data.isp;
     Ok(ClientNetInfo {
-        ip: res["ip"].to_string(),
+        ip: res.ip,
         location,
         net_work,
     })

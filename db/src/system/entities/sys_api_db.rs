@@ -44,8 +44,8 @@ impl ColumnTrait for Column {
     type EntityName = Entity;
     fn def(&self) -> ColumnDef {
         match self {
-            Self::ApiId => ColumnType::String(Some(32u32)).def(),
-            Self::Db => ColumnType::String(Some(32u32)).def(),
+            Self::ApiId => ColumnType::String(StringLen::N(32u32)).def(),
+            Self::Db => ColumnType::String(StringLen::N(32u32)).def(),
         }
     }
 }

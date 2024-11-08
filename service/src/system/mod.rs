@@ -1,6 +1,6 @@
 // 公共
 pub mod common;
-#[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
+// #[cfg(not(all(target_os = "macos", target_arch = "aarch64")))]
 pub mod server_info;
 // 用户管理
 pub mod sys_user;

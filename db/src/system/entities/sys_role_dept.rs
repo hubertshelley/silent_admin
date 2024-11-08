@@ -46,8 +46,8 @@ impl ColumnTrait for Column {
     type EntityName = Entity;
     fn def(&self) -> ColumnDef {
         match self {
-            Self::RoleId => ColumnType::String(Some(32u32)).def(),
-            Self::DeptId => ColumnType::String(Some(32u32)).def(),
+            Self::RoleId => ColumnType::String(StringLen::N(32u32)).def(),
+            Self::DeptId => ColumnType::String(StringLen::N(32u32)).def(),
             Self::CreatedAt => ColumnType::DateTime.def().null(),
         }
     }
