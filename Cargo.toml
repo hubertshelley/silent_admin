@@ -1,0 +1,42 @@
+[workspace]
+members = [
+    ".",
+    "common",
+    "api",
+    "migration",
+    #    "entity",
+    "services", ]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+authors = ["Hubert Shelley <hubertshelley@163.com>"]
+homepage = ""
+license = ""
+readme = "./README.md"
+repository = ""
+publish = false
+version = "0.1.0"
+
+[workspace.dependencies]
+silent = { git = "https://github.com/hubertshelley/silent.git", branch = "2.0.0" }
+
+[package]
+name = "silent-admin"
+edition.workspace = true
+authors.workspace = true
+homepage.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+version.workspace = true
+publish = false
+
+[dependencies]
+# list of crates in this workspace
+api = { path = "./api" }
+migration = { path = "./migration" }
+common = { path = "./common" }
+
+dotenv = { version = "0.15.0", features = ["clap"] }
+tokio = { version = "1", features = ["full"] }
