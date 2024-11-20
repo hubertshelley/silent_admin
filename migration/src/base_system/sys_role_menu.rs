@@ -20,23 +20,46 @@ enum SysRoleMenu {
 pub(crate) async fn up(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Migrating sys_role_menu");
+    if manager.has_table(SysRoleMenu::Table.to_string()).await? {
+        manager
+            .drop_table(Table::drop().table(SysRoleMenu::Table).to_owned())
+            .await?;
+    }
     manager
         .create_table(
             Table::create()
                 .table(SysRoleMenu::Table)
-                .if_not_exists()
-                .col(ColumnDef::new(SysRoleMenu::RoleId).string_len(36).not_null().comment("角色ID"))
-                .col(ColumnDef::new(SysRoleMenu::MenuId).string_len(36).not_null().comment("菜单ID"))
-                .primary_key(Index::create().col(SysRoleMenu::RoleId).col(SysRoleMenu::MenuId))
-                .comment("角色和菜单关联表").to_owned(),
-        ).await?;
+                .col(
+                    ColumnDef::new(SysRoleMenu::RoleId)
+                        .string_len(36)
+                        .not_null()
+                        .comment("角色ID"),
+                )
+                .col(
+                    ColumnDef::new(SysRoleMenu::MenuId)
+                        .string_len(36)
+                        .not_null()
+                        .comment("菜单ID"),
+                )
+                .primary_key(
+                    Index::create()
+                        .name("sys_role_menu_pk")
+                        .col(SysRoleMenu::RoleId)
+                        .col(SysRoleMenu::MenuId),
+                )
+                .comment("角色和菜单关联表")
+                .to_owned(),
+        )
+        .await?;
     Ok(())
 }
 
 pub(crate) async fn down(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Reverting sys_role_menu");
-    manager.drop_table(Table::drop().table(SysRoleMenu::Table).to_owned()).await?;
+    manager
+        .drop_table(Table::drop().table(SysRoleMenu::Table).to_owned())
+        .await?;
     Ok(())
 }
 
@@ -133,11 +156,7 @@ pub(crate) async fn init_data(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
     // insert into sys_role_menu values ('2', '1060');
     let insert = Query::insert()
         .into_table(SysRoleMenu::Table)
-        .columns(
-            [
-                SysRoleMenu::RoleId,
-                SysRoleMenu::MenuId,
-            ])
+        .columns([SysRoleMenu::RoleId, SysRoleMenu::MenuId])
         .values_panic(["2".into(), "1".into()])
         .values_panic(["2".into(), "2".into()])
         .values_panic(["2".into(), "3".into()])

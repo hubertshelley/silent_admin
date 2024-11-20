@@ -1,12 +1,4 @@
-# BPM
-
-商业流程管理系统(business process management)
-
-## 项目说明
-
-1. [技术路线图](./docs/roadmap.md)
-2. [业务架构](./docs/business_architecture.md)
-3. [通讯协议](./docs/protocol.md)
+# Silent Admin
 
 ## 数据迁移说明
 

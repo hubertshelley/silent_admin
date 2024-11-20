@@ -10,8 +10,16 @@ publish.workspace = true
 version.workspace = true
 
 [dependencies]
+configs = { path = "../configs" }
 common = { path = "../common" }
-#entity = { path = "../entity" }
+entity = { path = "../entity" }
 services = { path = "../services" }
+dto = { path = "../dto" }
 
-silent = { workspace = true }
+silent = { workspace = true, features = ["sse", "multipart"] }
+
+futures = { workspace = true }
+tokio-stream = { workspace = true }
+tokio = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }

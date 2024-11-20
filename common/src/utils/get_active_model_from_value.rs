@@ -1,7 +1,7 @@
 use sea_orm::prelude::Json;
 use sea_orm::{ActiveModelTrait, EntityTrait, IntoActiveModel};
 
-use crate::{BpmError, Result};
+use crate::{Result, SilentAdminError};
 
 pub fn get_active_model_from_value<T, V>(model: &mut T, value: Json) -> Result<()>
 where
@@ -11,5 +11,5 @@ where
 {
     model
         .set_from_json(value)
-        .map_err(|e| BpmError::num_msg(422, e.to_string()))
+        .map_err(|e| SilentAdminError::num_msg(422, e.to_string()))
 }

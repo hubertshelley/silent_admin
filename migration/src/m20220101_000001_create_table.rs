@@ -1,5 +1,5 @@
-use sea_orm_migration::prelude::*;
 use crate::base_system;
+use sea_orm_migration::prelude::*;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -15,6 +15,7 @@ impl MigrationTrait for Migration {
         base_system::sys_role::up(manager).await?;
         base_system::sys_menu::up(manager).await?;
         base_system::sys_user_role::up(manager).await?;
+        base_system::sys_user_dept::up(manager).await?;
         base_system::sys_role_menu::up(manager).await?;
         base_system::sys_role_dept::up(manager).await?;
         base_system::sys_user_post::up(manager).await?;
@@ -26,6 +27,7 @@ impl MigrationTrait for Migration {
         base_system::sys_job::up(manager).await?;
         base_system::sys_job_log::up(manager).await?;
         base_system::sys_notice::up(manager).await?;
+        base_system::sys_user_online::up(manager).await?;
 
         // 创建初始数据
         base_system::sys_dept::init_data(manager).await?;
@@ -36,6 +38,7 @@ impl MigrationTrait for Migration {
         base_system::sys_user_role::init_data(manager).await?;
         base_system::sys_role_menu::init_data(manager).await?;
         base_system::sys_role_dept::init_data(manager).await?;
+        base_system::sys_user_dept::init_data(manager).await?;
         base_system::sys_user_post::init_data(manager).await?;
         base_system::sys_operate_log::init_data(manager).await?;
         base_system::sys_dict_type::init_data(manager).await?;
@@ -45,6 +48,7 @@ impl MigrationTrait for Migration {
         base_system::sys_job::init_data(manager).await?;
         base_system::sys_job_log::init_data(manager).await?;
         base_system::sys_notice::init_data(manager).await?;
+        base_system::sys_user_online::init_data(manager).await?;
 
         Ok(())
     }
@@ -52,6 +56,7 @@ impl MigrationTrait for Migration {
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         // Replace the sample below with your own migration scripts
         // 回滚数据表
+        base_system::sys_user_online::down(manager).await?;
         base_system::sys_notice::down(manager).await?;
         base_system::sys_job_log::down(manager).await?;
         base_system::sys_job::down(manager).await?;
@@ -61,6 +66,7 @@ impl MigrationTrait for Migration {
         base_system::sys_dict_type::down(manager).await?;
         base_system::sys_operate_log::down(manager).await?;
         base_system::sys_user_post::down(manager).await?;
+        base_system::sys_user_dept::down(manager).await?;
         base_system::sys_role_dept::down(manager).await?;
         base_system::sys_role_menu::down(manager).await?;
         base_system::sys_user_role::down(manager).await?;

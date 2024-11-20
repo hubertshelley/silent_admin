@@ -36,32 +36,103 @@ enum SysLoginInfoRecord {
 pub(crate) async fn up(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Migrating sys_login_info_record");
+    if manager
+        .has_table(SysLoginInfoRecord::Table.to_string())
+        .await?
+    {
+        manager
+            .drop_table(Table::drop().table(SysLoginInfoRecord::Table).to_owned())
+            .await?;
+    }
     manager
         .create_table(
             Table::create()
                 .table(SysLoginInfoRecord::Table)
-                .if_not_exists()
-                .col(ColumnDef::new(SysLoginInfoRecord::Id).string_len(36).primary_key().comment("日志主键"))
-                .col(ColumnDef::new(SysLoginInfoRecord::UserName).string_len(50).default("").comment("用户账号"))
-                .col(ColumnDef::new(SysLoginInfoRecord::Ipaddr).string_len(128).default("").comment("登录IP地址"))
-                .col(ColumnDef::new(SysLoginInfoRecord::LoginLocation).string_len(255).default("").comment("登录地点"))
-                .col(ColumnDef::new(SysLoginInfoRecord::Browser).string_len(50).default("").comment("浏览器类型"))
-                .col(ColumnDef::new(SysLoginInfoRecord::Os).string_len(50).default("").comment("操作系统"))
-                .col(ColumnDef::new(SysLoginInfoRecord::Status).string_len(1).default("0").comment("登录状态（0成功 1失败）"))
-                .col(ColumnDef::new(SysLoginInfoRecord::Msg).string_len(255).default("").comment("提示消息"))
-                .col(ColumnDef::new(SysLoginInfoRecord::LoginTime).date_time().default(Expr::current_timestamp()).comment("访问时间"))
-                .index(Index::create().name("idx_sys_login_info_record_s").col(SysLoginInfoRecord::Status))
-                .index(Index::create().name("idx_sys_login_info_record_lt").col(SysLoginInfoRecord::LoginTime))
-                .comment("系统访问记录").to_owned(),
-        ).await?;
+                .col(
+                    ColumnDef::new(SysLoginInfoRecord::Id)
+                        .string_len(36)
+                        .primary_key()
+                        .comment("日志主键"),
+                )
+                .col(
+                    ColumnDef::new(SysLoginInfoRecord::UserName)
+                        .string_len(50)
+                        .default("")
+                        .comment("用户账号"),
+                )
+                .col(
+                    ColumnDef::new(SysLoginInfoRecord::Ipaddr)
+                        .string_len(128)
+                        .default("")
+                        .comment("登录IP地址"),
+                )
+                .col(
+                    ColumnDef::new(SysLoginInfoRecord::LoginLocation)
+                        .string_len(255)
+                        .default("")
+                        .comment("登录地点"),
+                )
+                .col(
+                    ColumnDef::new(SysLoginInfoRecord::Browser)
+                        .string_len(50)
+                        .default("")
+                        .comment("浏览器类型"),
+                )
+                .col(
+                    ColumnDef::new(SysLoginInfoRecord::Os)
+                        .string_len(50)
+                        .default("")
+                        .comment("操作系统"),
+                )
+                .col(
+                    ColumnDef::new(SysLoginInfoRecord::Status)
+                        .string_len(1)
+                        .default("0")
+                        .comment("登录状态（0成功 1失败）"),
+                )
+                .col(
+                    ColumnDef::new(SysLoginInfoRecord::Msg)
+                        .string_len(255)
+                        .default("")
+                        .comment("提示消息"),
+                )
+                .col(
+                    ColumnDef::new(SysLoginInfoRecord::LoginTime)
+                        .date_time()
+                        .default(Expr::current_timestamp())
+                        .comment("访问时间"),
+                )
+                .comment("系统访问记录")
+                .to_owned(),
+        )
+        .await?;
+    manager
+        .create_index(
+            Index::create()
+                .name("idx_sys_login_info_record_status")
+                .col(SysLoginInfoRecord::Status)
+                .table(SysLoginInfoRecord::Table)
+                .to_owned(),
+        )
+        .await?;
+    manager
+        .create_index(
+            Index::create()
+                .name("idx_sys_login_info_record_login_time")
+                .col(SysLoginInfoRecord::LoginTime)
+                .table(SysLoginInfoRecord::Table)
+                .to_owned(),
+        )
+        .await?;
     Ok(())
 }
-
 
 pub(crate) async fn down(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Reverting sys_login_info_record");
-    manager.drop_table(Table::drop().table(SysLoginInfoRecord::Table).to_owned()).await?;
+    manager
+        .drop_table(Table::drop().table(SysLoginInfoRecord::Table).to_owned())
+        .await?;
     Ok(())
 }
 

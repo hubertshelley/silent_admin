@@ -1,5 +1,4 @@
 use crate::response::Res;
-use sea_orm::prelude::async_trait;
 use silent::prelude::{Next, ResBody, Route};
 use silent::{Handler, MiddleWareHandler, Request, Response, Result};
 

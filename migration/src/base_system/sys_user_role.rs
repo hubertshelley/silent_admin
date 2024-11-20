@@ -21,23 +21,46 @@ enum SysUserPost {
 pub(crate) async fn up(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Migrating sys_user_post");
+    if manager.has_table(SysUserPost::Table.to_string()).await? {
+        manager
+            .drop_table(Table::drop().table(SysUserPost::Table).to_owned())
+            .await?;
+    }
     manager
         .create_table(
             Table::create()
                 .table(SysUserPost::Table)
-                .if_not_exists()
-                .col(ColumnDef::new(SysUserPost::UserId).string_len(36).not_null().comment("用户ID"))
-                .col(ColumnDef::new(SysUserPost::PostId).string_len(36).not_null().comment("岗位ID"))
-                .primary_key(Index::create().col(SysUserPost::UserId).col(SysUserPost::PostId))
-                .comment("用户与岗位关联表").to_owned(),
-        ).await?;
+                .col(
+                    ColumnDef::new(SysUserPost::UserId)
+                        .string_len(36)
+                        .not_null()
+                        .comment("用户ID"),
+                )
+                .col(
+                    ColumnDef::new(SysUserPost::PostId)
+                        .string_len(36)
+                        .not_null()
+                        .comment("岗位ID"),
+                )
+                .primary_key(
+                    Index::create()
+                        .name("sys_user_post_pk")
+                        .col(SysUserPost::UserId)
+                        .col(SysUserPost::PostId),
+                )
+                .comment("用户与岗位关联表")
+                .to_owned(),
+        )
+        .await?;
     Ok(())
 }
 
 pub(crate) async fn down(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Reverting sys_user_post");
-    manager.drop_table(Table::drop().table(SysUserPost::Table).to_owned()).await?;
+    manager
+        .drop_table(Table::drop().table(SysUserPost::Table).to_owned())
+        .await?;
     Ok(())
 }
 
@@ -51,11 +74,7 @@ pub(crate) async fn init_data(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
     // insert into sys_user_post values ('2', '2');
     let insert = Query::insert()
         .into_table(SysUserPost::Table)
-        .columns(
-            [
-                SysUserPost::UserId,
-                SysUserPost::PostId,
-            ])
+        .columns([SysUserPost::UserId, SysUserPost::PostId])
         .values_panic(["1".into(), "1".into()])
         .values_panic(["2".into(), "2".into()])
         .to_owned();

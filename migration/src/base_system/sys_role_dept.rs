@@ -20,23 +20,46 @@ enum SysRoleDept {
 pub(crate) async fn up(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Migrating sys_role_dept");
+    if manager.has_table(SysRoleDept::Table.to_string()).await? {
+        manager
+            .drop_table(Table::drop().table(SysRoleDept::Table).to_owned())
+            .await?;
+    }
     manager
         .create_table(
             Table::create()
                 .table(SysRoleDept::Table)
-                .if_not_exists()
-                .col(ColumnDef::new(SysRoleDept::RoleId).string_len(36).not_null().comment("角色ID"))
-                .col(ColumnDef::new(SysRoleDept::DeptId).string_len(36).not_null().comment("部门ID"))
-                .primary_key(Index::create().col(SysRoleDept::RoleId).col(SysRoleDept::DeptId))
-                .comment("角色和部门关联表").to_owned(),
-        ).await?;
+                .col(
+                    ColumnDef::new(SysRoleDept::RoleId)
+                        .string_len(36)
+                        .not_null()
+                        .comment("角色ID"),
+                )
+                .col(
+                    ColumnDef::new(SysRoleDept::DeptId)
+                        .string_len(36)
+                        .not_null()
+                        .comment("部门ID"),
+                )
+                .primary_key(
+                    Index::create()
+                        .name("sys_role_dept_pk")
+                        .col(SysRoleDept::RoleId)
+                        .col(SysRoleDept::DeptId),
+                )
+                .comment("角色和部门关联表")
+                .to_owned(),
+        )
+        .await?;
     Ok(())
 }
 
 pub(crate) async fn down(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Reverting sys_role_dept");
-    manager.drop_table(Table::drop().table(SysRoleDept::Table).to_owned()).await?;
+    manager
+        .drop_table(Table::drop().table(SysRoleDept::Table).to_owned())
+        .await?;
     Ok(())
 }
 
@@ -51,11 +74,7 @@ pub(crate) async fn init_data(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
     // insert into sys_role_dept values ('2', '105');
     let insert = Query::insert()
         .into_table(SysRoleDept::Table)
-        .columns(
-            [
-                SysRoleDept::RoleId,
-                SysRoleDept::DeptId,
-            ])
+        .columns([SysRoleDept::RoleId, SysRoleDept::DeptId])
         .values_panic(["2".into(), "100".into()])
         .values_panic(["2".into(), "101".into()])
         .values_panic(["2".into(), "105".into()])

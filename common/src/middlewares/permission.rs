@@ -1,7 +1,6 @@
 use crate::middlewares::authorization::User;
-use crate::BpmError;
+use crate::SilentAdminError;
 use regex::Regex;
-use sea_orm::prelude::async_trait;
 use silent::{Handler, MiddleWareHandler, Next, Request, Response, SilentError};
 
 #[derive(Clone, Debug)]
@@ -33,6 +32,6 @@ impl MiddleWareHandler for PermissionMiddleware {
                 return next.call(req).await;
             }
         }
-        Err(BpmError::Unauthorized.into())
+        Err(SilentAdminError::Unauthorized.into())
     }
 }

@@ -78,6 +78,10 @@ pub struct Jwt {
     pub jwt_secret: String,
     /// JWT 过期时间
     pub jwt_exp: i64,
+    // 算法
+    pub jwt_algorithm: Option<String>,
+    // 签发者
+    pub jwt_issuer: Option<String>,
 }
 
 /// 日志配置

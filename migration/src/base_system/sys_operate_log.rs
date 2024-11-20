@@ -53,40 +53,156 @@ enum SysOperateLog {
 pub(crate) async fn up(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Migrating sys_operate_log");
+    if manager.has_table(SysOperateLog::Table.to_string()).await? {
+        manager
+            .drop_table(Table::drop().table(SysOperateLog::Table).to_owned())
+            .await?;
+    }
     manager
         .create_table(
             Table::create()
                 .table(SysOperateLog::Table)
-                .if_not_exists()
-                .col(ColumnDef::new(SysOperateLog::Id).string_len(36).primary_key().comment("日志主键"))
-                .col(ColumnDef::new(SysOperateLog::Title).string_len(50).default("").comment("模块标题"))
-                .col(ColumnDef::new(SysOperateLog::BusinessType).integer().default(0).comment("业务类型（0其它 1新增 2修改 3删除）"))
-                .col(ColumnDef::new(SysOperateLog::Method).string_len(200).default("").comment("方法名称"))
-                .col(ColumnDef::new(SysOperateLog::RequestMethod).string_len(10).default("").comment("请求方式"))
-                .col(ColumnDef::new(SysOperateLog::OperatorType).integer().default(0).comment("操作类别（0其它 1后台用户 2手机端用户）"))
-                .col(ColumnDef::new(SysOperateLog::OperatorName).string_len(50).default("").comment("操作人员"))
-                .col(ColumnDef::new(SysOperateLog::DeptName).string_len(50).default("").comment("部门名称"))
-                .col(ColumnDef::new(SysOperateLog::OperateUrl).string_len(255).default("").comment("请求URL"))
-                .col(ColumnDef::new(SysOperateLog::OperateIp).string_len(128).default("").comment("主机地址"))
-                .col(ColumnDef::new(SysOperateLog::OperateLocation).string_len(255).default("").comment("操作地点"))
-                .col(ColumnDef::new(SysOperateLog::OperateParam).string_len(2000).default("").comment("请求参数"))
-                .col(ColumnDef::new(SysOperateLog::JsonResult).json().comment("返回参数"))
-                .col(ColumnDef::new(SysOperateLog::Status).integer().default(0).comment("操作状态（0正常 1异常）"))
-                .col(ColumnDef::new(SysOperateLog::ErrorMsg).string_len(2000).default("").comment("错误消息"))
-                .col(ColumnDef::new(SysOperateLog::OperateTime).date_time().default(Expr::current_timestamp()).comment("操作时间"))
-                .col(ColumnDef::new(SysOperateLog::CostTime).integer().default(0).comment("消耗时间"))
-                .index(Index::create().name("idx_sys_operate_log_bt").col(SysOperateLog::BusinessType))
-                .index(Index::create().name("idx_sys_operate_log_s").col(SysOperateLog::Status))
-                .index(Index::create().name("idx_sys_operate_log_ot").col(SysOperateLog::OperateTime))
-                .comment("操作日志记录").to_owned(),
-        ).await?;
+                .col(
+                    ColumnDef::new(SysOperateLog::Id)
+                        .string_len(36)
+                        .primary_key()
+                        .comment("日志主键"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::Title)
+                        .string_len(50)
+                        .default("")
+                        .comment("模块标题"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::BusinessType)
+                        .integer()
+                        .default(0)
+                        .comment("业务类型（0其它 1新增 2修改 3删除）"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::Method)
+                        .string_len(200)
+                        .default("")
+                        .comment("方法名称"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::RequestMethod)
+                        .string_len(10)
+                        .default("")
+                        .comment("请求方式"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::OperatorType)
+                        .integer()
+                        .default(0)
+                        .comment("操作类别（0其它 1后台用户 2手机端用户）"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::OperatorName)
+                        .string_len(50)
+                        .default("")
+                        .comment("操作人员"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::DeptName)
+                        .string_len(50)
+                        .default("")
+                        .comment("部门名称"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::OperateUrl)
+                        .string_len(255)
+                        .default("")
+                        .comment("请求URL"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::OperateIp)
+                        .string_len(128)
+                        .default("")
+                        .comment("主机地址"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::OperateLocation)
+                        .string_len(255)
+                        .default("")
+                        .comment("操作地点"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::OperateParam)
+                        .string_len(2000)
+                        .default("")
+                        .comment("请求参数"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::JsonResult)
+                        .json()
+                        .comment("返回参数"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::Status)
+                        .integer()
+                        .default(0)
+                        .comment("操作状态（0正常 1异常）"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::ErrorMsg)
+                        .string_len(2000)
+                        .default("")
+                        .comment("错误消息"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::OperateTime)
+                        .date_time()
+                        .default(Expr::current_timestamp())
+                        .comment("操作时间"),
+                )
+                .col(
+                    ColumnDef::new(SysOperateLog::CostTime)
+                        .integer()
+                        .default(0)
+                        .comment("消耗时间"),
+                )
+                .comment("操作日志记录")
+                .to_owned(),
+        )
+        .await?;
+    manager
+        .create_index(
+            Index::create()
+                .name("idx_sys_operate_log_business_type")
+                .col(SysOperateLog::BusinessType)
+                .table(SysOperateLog::Table)
+                .to_owned(),
+        )
+        .await?;
+    manager
+        .create_index(
+            Index::create()
+                .name("idx_sys_operate_log_status")
+                .col(SysOperateLog::Status)
+                .table(SysOperateLog::Table)
+                .to_owned(),
+        )
+        .await?;
+    manager
+        .create_index(
+            Index::create()
+                .name("idx_sys_operate_log_operate_time")
+                .col(SysOperateLog::OperateTime)
+                .table(SysOperateLog::Table)
+                .to_owned(),
+        )
+        .await?;
     Ok(())
 }
 
 pub(crate) async fn down(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Reverting sys_operate_log");
-    manager.drop_table(Table::drop().table(SysOperateLog::Table).to_owned()).await?;
+    manager
+        .drop_table(Table::drop().table(SysOperateLog::Table).to_owned())
+        .await?;
     Ok(())
 }
 

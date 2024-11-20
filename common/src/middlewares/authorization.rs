@@ -1,7 +1,7 @@
 use crate::jwt::{Claims, JWT_KEY};
-use crate::BpmError;
+use crate::SilentAdminError;
+use configs::CFG;
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use sea_orm::prelude::async_trait;
 use silent::headers::authorization::Bearer;
 use silent::headers::{Authorization, HeaderMapExt};
 use silent::prelude::Next;
@@ -16,8 +16,9 @@ pub enum User {
 impl From<Claims> for User {
     fn from(value: Claims) -> Self {
         Self::Authenticated(AuthUser {
-            id: value.id,
-            username: value.name,
+            id: value.id.clone(),
+            username: value.name.clone(),
+            claims: value,
         })
     }
 }
@@ -29,16 +30,22 @@ impl User {
             User::Anonymous => false,
         }
     }
-    pub fn id(&self) -> Result<String, BpmError> {
+    pub fn id(&self) -> Result<String, SilentAdminError> {
         match self {
             User::Authenticated(auth_user) => Ok(auth_user.id.clone()),
-            User::Anonymous => Err(BpmError::Unauthorized),
+            User::Anonymous => Err(SilentAdminError::Unauthorized),
         }
     }
-    pub fn username(&self) -> Result<String, BpmError> {
+    pub fn username(&self) -> Result<String, SilentAdminError> {
         match self {
             User::Authenticated(auth_user) => Ok(auth_user.username.clone()),
-            User::Anonymous => Err(BpmError::Unauthorized),
+            User::Anonymous => Err(SilentAdminError::Unauthorized),
+        }
+    }
+    pub fn claims(&self) -> Result<Claims, SilentAdminError> {
+        match self {
+            User::Authenticated(auth_user) => Ok(auth_user.claims.clone()),
+            User::Anonymous => Err(SilentAdminError::Unauthorized),
         }
     }
 }
@@ -47,6 +54,7 @@ impl User {
 pub struct AuthUser {
     pub id: String,
     pub username: String,
+    pub claims: Claims,
 }
 
 #[derive(Clone)]
@@ -63,8 +71,8 @@ impl Default for JWTAuthorizationMiddleware {
 
 impl JWTAuthorizationMiddleware {
     pub fn new() -> Self {
-        let algorithm = std::env::var("JWT_ALGORITHM").ok();
-        let issuer = std::env::var("JWT_ISSUER").ok();
+        let algorithm: Option<String> = CFG.jwt.jwt_algorithm.clone();
+        let issuer: Option<String> = CFG.jwt.jwt_issuer.clone();
         let secret_key = JWT_KEY.decoding.clone();
         let mut validation = if let Some(algorithm) = algorithm {
             Validation::new(algorithm.parse().expect("Invalid algorithm"))

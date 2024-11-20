@@ -1,12 +1,12 @@
+use crate::{Result, SilentAdminError};
 use chrono::{Duration, Local};
+use configs::CFG;
 use jsonwebtoken::{encode, DecodingKey, EncodingKey, Header};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
-use crate::{BpmError, Result};
-
 pub static JWT_KEY: Lazy<Keys> = Lazy::new(|| {
-    let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "secret".to_string());
+    let secret = &CFG.jwt.jwt_secret;
     let secret = secret.as_bytes();
     Keys::new(secret)
 });
@@ -39,7 +39,7 @@ pub struct Claims {
 
 pub async fn authorize(payload: AuthPayload) -> Result<AuthBody> {
     let iat = Local::now();
-    let exp = iat + Duration::minutes(1440);
+    let exp = iat + Duration::minutes(CFG.jwt.jwt_exp);
     let claims = Claims {
         id: payload.id.to_owned(),
         name: payload.name,
@@ -47,7 +47,7 @@ pub async fn authorize(payload: AuthPayload) -> Result<AuthBody> {
     };
     // Create the authorization token
     let token = encode(&Header::default(), &claims, &JWT_KEY.encoding)
-        .map_err(|e| BpmError::msg(e.to_string()))?;
+        .map_err(|e| SilentAdminError::msg(e.to_string()))?;
     // Send the authorized token
     Ok(AuthBody::new(token, claims.exp, 1440))
 }

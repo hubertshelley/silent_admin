@@ -4,7 +4,7 @@ use thiserror::Error;
 
 /// SilentError is the error type for the `silent` library.
 #[derive(Error, Debug)]
-pub enum BpmError {
+pub enum SilentAdminError {
     SonyFlakeError(#[from] sonyflake::Error),
     DbErr(#[from] DbErr),
     SerdeJson(#[from] serde_json::Error),
@@ -18,21 +18,21 @@ pub enum BpmError {
     Unauthorized,
 }
 
-impl BpmError {
+impl SilentAdminError {
     pub fn code_msg<T: Into<String>>(code: StatusCode, msg: T) -> Self {
-        BpmError::BusinessError {
+        SilentAdminError::BusinessError {
             code,
             msg: msg.into(),
         }
     }
     pub fn msg<T: Into<String>>(msg: T) -> Self {
-        BpmError::BusinessError {
+        SilentAdminError::BusinessError {
             code: StatusCode::INTERNAL_SERVER_ERROR,
             msg: msg.into(),
         }
     }
     pub fn num_msg<T: Into<String>>(num: u16, msg: T) -> Self {
-        BpmError::BusinessError {
+        SilentAdminError::BusinessError {
             code: StatusCode::from_u16(num).unwrap(),
             msg: msg.into(),
         }
@@ -55,36 +55,36 @@ impl BpmError {
     }
 }
 
-impl std::fmt::Display for BpmError {
+impl std::fmt::Display for SilentAdminError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            BpmError::SonyFlakeError(e) => write!(f, "SonyFlakeError: {}", e),
-            BpmError::DbErr(e) => write!(f, "DbErr: {}", e),
-            BpmError::BusinessError { code, msg } => {
+            SilentAdminError::SonyFlakeError(e) => write!(f, "SonyFlakeError: {}", e),
+            SilentAdminError::DbErr(e) => write!(f, "DbErr: {}", e),
+            SilentAdminError::BusinessError { code, msg } => {
                 write!(f, "BusinessError: code: {}, msg: {}", code, msg)
             }
-            BpmError::DatabaseErr(e) => write!(f, "DatabaseErr: {}", e),
-            BpmError::SerdeJson(e) => write!(f, "SerdeJson: {}", e),
-            BpmError::Unauthorized => write!(f, "Unauthorized"),
+            SilentAdminError::DatabaseErr(e) => write!(f, "DatabaseErr: {}", e),
+            SilentAdminError::SerdeJson(e) => write!(f, "SerdeJson: {}", e),
+            SilentAdminError::Unauthorized => write!(f, "Unauthorized"),
         }
     }
 }
 
-impl From<BpmError> for SilentError {
-    fn from(value: BpmError) -> Self {
+impl From<SilentAdminError> for SilentError {
+    fn from(value: SilentAdminError) -> Self {
         match value {
-            BpmError::SonyFlakeError(e) => {
+            SilentAdminError::SonyFlakeError(e) => {
                 SilentError::business_error(StatusCode::from_u16(551).unwrap(), e.to_string())
             }
-            BpmError::DbErr(e) => {
+            SilentAdminError::DbErr(e) => {
                 SilentError::business_error(StatusCode::from_u16(516).unwrap(), e.to_string())
             }
-            BpmError::DatabaseErr(e) => {
+            SilentAdminError::DatabaseErr(e) => {
                 SilentError::business_error(StatusCode::from_u16(516).unwrap(), e)
             }
-            BpmError::BusinessError { code, msg } => SilentError::business_error(code, msg),
-            BpmError::SerdeJson(e) => e.into(),
-            BpmError::Unauthorized => {
+            SilentAdminError::BusinessError { code, msg } => SilentError::business_error(code, msg),
+            SilentAdminError::SerdeJson(e) => e.into(),
+            SilentAdminError::Unauthorized => {
                 SilentError::business_error(StatusCode::UNAUTHORIZED, "无效的认证信息".to_string())
             }
         }

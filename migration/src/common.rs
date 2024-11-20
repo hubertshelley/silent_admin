@@ -22,12 +22,14 @@ pub(crate) enum BaseModel {
 
 impl BaseModel {
     fn append_base_columns(statement: &mut TableCreateStatement) -> &mut TableCreateStatement {
-        statement.col(
-            ColumnDef::new(Self::Id)
-                .string_len(36)
-                .not_null()
-                .primary_key().comment("ID"),
-        )
+        statement
+            .col(
+                ColumnDef::new(Self::Id)
+                    .string_len(36)
+                    .not_null()
+                    .primary_key()
+                    .comment("ID"),
+            )
             .col(
                 ColumnDef::new(Self::DelFlag)
                     .integer()
@@ -63,6 +65,6 @@ impl BaseModel {
                     .default(Expr::current_timestamp())
                     .comment("更新时间"),
             )
-            .index(Index::create().unique().name("idx-id").col(Self::Id))
+            .index(Index::create().unique().col(Self::Id))
     }
 }

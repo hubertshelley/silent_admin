@@ -36,18 +36,22 @@ enum SysRole {
 pub(crate) async fn up(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Migrating sys_role");
+    if manager.has_table(SysRole::Table.to_string()).await? {
+        manager
+            .drop_table(Table::drop().table(SysRole::Table).to_owned())
+            .await?;
+    }
     manager
         .create_table(
             Table::create()
                 .table(SysRole::Table)
-                .if_not_exists()
                 .append_base_columns()
                 .col(ColumnDef::new(SysRole::Name).string_len(30).not_null().comment("角色名称"))
                 .col(ColumnDef::new(SysRole::Key).string_len(100).not_null().comment("角色权限字符串"))
                 .col(ColumnDef::new(SysRole::Sort).integer().not_null().comment("显示顺序"))
                 .col(ColumnDef::new(SysRole::DataScope).string_len(1).default("1").comment("数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）"))
-                .col(ColumnDef::new(SysRole::MenuCheckStrictly).boolean().default("1").comment("菜单树选择项是否关联显示"))
-                .col(ColumnDef::new(SysRole::DeptCheckStrictly).boolean().default("1").comment("部门树选择项是否关联显示"))
+                .col(ColumnDef::new(SysRole::MenuCheckStrictly).boolean().default(true).comment("菜单树选择项是否关联显示"))
+                .col(ColumnDef::new(SysRole::DeptCheckStrictly).boolean().default(true).comment("部门树选择项是否关联显示"))
                 .col(ColumnDef::new(SysRole::Status).string_len(1).not_null().comment("角色状态（0正常 1停用）"))
                 .col(ColumnDef::new(SysRole::Remark).string_len(500).default("").comment("备注"))
                 .comment("岗位信息表").to_owned(),
@@ -58,7 +62,9 @@ pub(crate) async fn up(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
 pub(crate) async fn down(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Reverting sys_role");
-    manager.drop_table(Table::drop().table(SysRole::Table).to_owned()).await?;
+    manager
+        .drop_table(Table::drop().table(SysRole::Table).to_owned())
+        .await?;
     Ok(())
 }
 
@@ -73,21 +79,42 @@ pub(crate) async fn init_data(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
 
     let insert = Query::insert()
         .into_table(SysRole::Table)
-        .columns(
-            [
-                BaseModel::Id.into_iden(),
-                SysRole::Name.into_iden(),
-                SysRole::Key.into_iden(),
-                SysRole::Sort.into_iden(),
-                SysRole::DataScope.into_iden(),
-                SysRole::MenuCheckStrictly.into_iden(),
-                SysRole::DeptCheckStrictly.into_iden(),
-                SysRole::Status.into_iden(),
-                BaseModel::CreateBy.into_iden(),
-                SysRole::Remark.into_iden(),
-            ])
-        .values_panic(["1".into(), "超级管理员".into(), "admin".into(), "1".into(), "1".into(), "1".into(), "1".into(), "0".into(), "admin".into(), "超级管理员".into()])
-        .values_panic(["2".into(), "普通角色".into(), "common".into(), "2".into(), "2".into(), "1".into(), "1".into(), "0".into(), "admin".into(), "普通角色".into()])
+        .columns([
+            BaseModel::Id.into_iden(),
+            SysRole::Name.into_iden(),
+            SysRole::Key.into_iden(),
+            SysRole::Sort.into_iden(),
+            SysRole::DataScope.into_iden(),
+            SysRole::MenuCheckStrictly.into_iden(),
+            SysRole::DeptCheckStrictly.into_iden(),
+            SysRole::Status.into_iden(),
+            BaseModel::CreateBy.into_iden(),
+            SysRole::Remark.into_iden(),
+        ])
+        .values_panic([
+            "1".into(),
+            "超级管理员".into(),
+            "admin".into(),
+            1.into(),
+            "1".into(),
+            true.into(),
+            true.into(),
+            "0".into(),
+            "admin".into(),
+            "超级管理员".into(),
+        ])
+        .values_panic([
+            "2".into(),
+            "普通角色".into(),
+            "common".into(),
+            2.into(),
+            "2".into(),
+            true.into(),
+            true.into(),
+            "0".into(),
+            "admin".into(),
+            "普通角色".into(),
+        ])
         .to_owned();
     manager.exec_stmt(insert).await?;
     Ok(())

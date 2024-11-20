@@ -38,29 +38,77 @@ enum SysJob {
 pub(crate) async fn up(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Migrating sys_job");
+    if manager.has_table(SysJob::Table.to_string()).await? {
+        manager
+            .drop_table(Table::drop().table(SysJob::Table).to_owned())
+            .await?;
+    }
     manager
         .create_table(
             Table::create()
                 .table(SysJob::Table)
-                .if_not_exists()
                 .append_base_columns()
-                .col(ColumnDef::new(SysJob::Name).string_len(64).default("").comment("任务名称"))
-                .col(ColumnDef::new(SysJob::Group).string_len(64).default("DEFAULT").comment("任务组名"))
-                .col(ColumnDef::new(SysJob::InvokeTarget).string_len(500).not_null().comment("调用目标字符串"))
-                .col(ColumnDef::new(SysJob::CronExpression).string_len(255).default("").comment("cron执行表达式"))
-                .col(ColumnDef::new(SysJob::MisfirePolicy).string_len(20).default("3").comment("计划执行错误策略（1立即执行 2执行一次 3放弃执行）"))
-                .col(ColumnDef::new(SysJob::Concurrent).char_len(1).default("1").comment("是否并发执行（0允许 1禁止）"))
-                .col(ColumnDef::new(SysJob::Status).char_len(1).default("0").comment("状态（0正常 1暂停）"))
-                .col(ColumnDef::new(SysJob::Remark).string().default(Value::String(None)).comment("备注"))
-                .comment("定时任务调度表").to_owned(),
-        ).await?;
+                .col(
+                    ColumnDef::new(SysJob::Name)
+                        .string_len(64)
+                        .default("")
+                        .comment("任务名称"),
+                )
+                .col(
+                    ColumnDef::new(SysJob::Group)
+                        .string_len(64)
+                        .default("DEFAULT")
+                        .comment("任务组名"),
+                )
+                .col(
+                    ColumnDef::new(SysJob::InvokeTarget)
+                        .string_len(500)
+                        .not_null()
+                        .comment("调用目标字符串"),
+                )
+                .col(
+                    ColumnDef::new(SysJob::CronExpression)
+                        .string_len(255)
+                        .default("")
+                        .comment("cron执行表达式"),
+                )
+                .col(
+                    ColumnDef::new(SysJob::MisfirePolicy)
+                        .string_len(20)
+                        .default("3")
+                        .comment("计划执行错误策略（1立即执行 2执行一次 3放弃执行）"),
+                )
+                .col(
+                    ColumnDef::new(SysJob::Concurrent)
+                        .char_len(1)
+                        .default("1")
+                        .comment("是否并发执行（0允许 1禁止）"),
+                )
+                .col(
+                    ColumnDef::new(SysJob::Status)
+                        .char_len(1)
+                        .default("0")
+                        .comment("状态（0正常 1暂停）"),
+                )
+                .col(
+                    ColumnDef::new(SysJob::Remark)
+                        .string()
+                        .default(Value::String(None))
+                        .comment("备注"),
+                )
+                .comment("定时任务调度表")
+                .to_owned(),
+        )
+        .await?;
     Ok(())
 }
 
 pub(crate) async fn down(manager: &SchemaManager<'_>) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     println!("Reverting sys_job");
-    manager.drop_table(Table::drop().table(SysJob::Table).to_owned()).await?;
+    manager
+        .drop_table(Table::drop().table(SysJob::Table).to_owned())
+        .await?;
     Ok(())
 }
 
@@ -72,22 +120,54 @@ pub(crate) async fn init_data(manager: &SchemaManager<'_>) -> Result<(), DbErr> 
     // insert into sys_job values(3, '系统默认（多参）', 'DEFAULT', 'ryTask.ryMultipleParams(\'ry\', true, 2000L, 316.50D, 100)',  '0/20 * * * * ?', '3', '1', '1', 'admin', sysdate(), '', null, '');
     let insert = Query::insert()
         .into_table(SysJob::Table)
-        .columns(
-            [
-                BaseModel::Id.into_iden(),
-                SysJob::Name.into_iden(),
-                SysJob::Group.into_iden(),
-                SysJob::InvokeTarget.into_iden(),
-                SysJob::CronExpression.into_iden(),
-                SysJob::MisfirePolicy.into_iden(),
-                SysJob::Concurrent.into_iden(),
-                SysJob::Status.into_iden(),
-                BaseModel::CreateBy.into_iden(),
-                SysJob::Remark.into_iden(),
-            ])
-        .values_panic(["1".into(), "系统默认（无参）".into(), "DEFAULT".into(), "ryTask.ryNoParams".into(), "0/10 * * * * ?".into(), "3".into(), "1".into(), "1".into(), "admin".into(), "".into()])
-        .values_panic(["2".into(), "系统默认（有参）".into(), "DEFAULT".into(), "ryTask.ryParams('ry')".into(), "0/15 * * * * ?".into(), "3".into(), "1".into(), "1".into(), "admin".into(), "".into()])
-        .values_panic(["3".into(), "系统默认（多参）".into(), "DEFAULT".into(), "ryTask.ryMultipleParams('ry', true, 2000L, 316.50D, 100)".into(), "0/20 * * * * ?".into(), "3".into(), "1".into(), "1".into(), "admin".into(), "".into()])
+        .columns([
+            BaseModel::Id.into_iden(),
+            SysJob::Name.into_iden(),
+            SysJob::Group.into_iden(),
+            SysJob::InvokeTarget.into_iden(),
+            SysJob::CronExpression.into_iden(),
+            SysJob::MisfirePolicy.into_iden(),
+            SysJob::Concurrent.into_iden(),
+            SysJob::Status.into_iden(),
+            BaseModel::CreateBy.into_iden(),
+            SysJob::Remark.into_iden(),
+        ])
+        .values_panic([
+            "1".into(),
+            "系统默认（无参）".into(),
+            "DEFAULT".into(),
+            "ryTask.ryNoParams".into(),
+            "0/10 * * * * ?".into(),
+            "3".into(),
+            "1".into(),
+            "1".into(),
+            "admin".into(),
+            "".into(),
+        ])
+        .values_panic([
+            "2".into(),
+            "系统默认（有参）".into(),
+            "DEFAULT".into(),
+            "ryTask.ryParams('ry')".into(),
+            "0/15 * * * * ?".into(),
+            "3".into(),
+            "1".into(),
+            "1".into(),
+            "admin".into(),
+            "".into(),
+        ])
+        .values_panic([
+            "3".into(),
+            "系统默认（多参）".into(),
+            "DEFAULT".into(),
+            "ryTask.ryMultipleParams('ry', true, 2000L, 316.50D, 100)".into(),
+            "0/20 * * * * ?".into(),
+            "3".into(),
+            "1".into(),
+            "1".into(),
+            "admin".into(),
+            "".into(),
+        ])
         .to_owned();
     manager.exec_stmt(insert).await?;
     Ok(())

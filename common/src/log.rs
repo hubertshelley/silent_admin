@@ -1,5 +1,5 @@
+use configs::CFG;
 use silent::prelude::logger;
-use std::env;
 use tracing::metadata::LevelFilter;
 use tracing::{info, Level};
 use tracing_appender::non_blocking::WorkerGuard;
@@ -11,7 +11,7 @@ use tracing_subscriber::Layer;
 
 pub fn init_log(guards: &mut Vec<WorkerGuard>) {
     // 日志级别
-    let log_level = env::var("LOG_LEVEL").unwrap_or_else(|_| "INFO".to_string());
+    let log_level = CFG.log.log_level.clone();
 
     // 系统变量设置
     let log_level = get_log_level(log_level);
@@ -20,7 +20,7 @@ pub fn init_log(guards: &mut Vec<WorkerGuard>) {
     let format = get_log_format();
 
     // 文件输出
-    let file_appender = tracing_appender::rolling::daily("logs", "app_log");
+    let file_appender = tracing_appender::rolling::daily(CFG.log.dir.clone(), CFG.log.file.clone());
     let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
     guards.push(guard);
 
