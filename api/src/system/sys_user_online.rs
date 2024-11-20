@@ -23,7 +23,7 @@ pub async fn delete(mut req: Request) -> Result<String> {
 }
 
 /// 登出
-pub async fn log_out(req: Request) -> Result<String> {
+pub async fn logout(req: Request) -> Result<String> {
     let user = req.extensions().get::<User>().unwrap();
     let db = req.get_config()?;
     let res = system::sys_user_online::log_out(db, user.id()?).await;

@@ -129,7 +129,7 @@ pub async fn get_sort_list(
                     created_time: Some(m.0.create_time),
                 },
                 dept: DeptResp {
-                    dept_id: v.id.clone(),
+                    id: v.id.clone(),
                     parent_id: v.parent_id.clone().unwrap_or("".to_owned()),
                     dept_name: v.dept_name.clone().unwrap_or("".to_owned()),
                     order_num: v.order_num.unwrap_or(0),
@@ -137,7 +137,7 @@ pub async fn get_sort_list(
                     phone: v.phone.clone(),
                     email: v.email.clone(),
                     status: v.status.clone().unwrap_or("0".to_owned()),
-                    created_at: v.create_time,
+                    create_time: v.create_time,
                 },
             },
             None => return Err(anyhow!("{}无部门信息", m.0.user_name)),
@@ -199,7 +199,7 @@ pub async fn get_un_auth_user(
 /// db 数据库连接
 pub async fn get_by_id(db: &DatabaseConnection, user_id: &str) -> Result<UserWithDept> {
     let user_s = SysUser::find()
-        .filter(sys_user::Column::CreateTime.is_null())
+        .filter(sys_user::Column::DelFlag.eq(0))
         .filter(sys_user::Column::Id.eq(user_id))
         .one(db)
         .await?;
@@ -230,7 +230,7 @@ pub async fn get_by_id(db: &DatabaseConnection, user_id: &str) -> Result<UserWit
                         created_time: Some(u.create_time),
                     },
                     dept: DeptResp {
-                        dept_id: v.id.clone(),
+                        id: v.id.clone(),
                         parent_id: v.parent_id.clone().unwrap_or("".to_owned()),
                         dept_name: v.dept_name.clone().unwrap_or("".to_owned()),
                         order_num: v.order_num.unwrap_or(0),
@@ -238,7 +238,7 @@ pub async fn get_by_id(db: &DatabaseConnection, user_id: &str) -> Result<UserWit
                         phone: v.phone.clone(),
                         email: v.email.clone(),
                         status: v.status.unwrap_or("0".to_owned()),
-                        created_at: v.create_time,
+                        create_time: v.create_time,
                     },
                 },
             }
@@ -364,7 +364,7 @@ pub async fn update_passwd(
     {
         None => return Err(anyhow!("用户不存在")),
         Some(x) => {
-            if !verify_password(req.old_passwd, x.password.unwrap_or("".to_string()))? {
+            if !verify_password(x.password.unwrap_or("".to_string()), req.old_passwd)? {
                 return Err(anyhow!("旧密码错误,请检查重新输入"));
             }
         }
@@ -565,7 +565,7 @@ pub async fn login(
         .await?
     {
         Some(user) => {
-            if &user.status.clone().unwrap() == "0" {
+            if &user.status.clone().unwrap() != "0" {
                 msg = "用户已被禁用".to_string();
                 status = "0".to_string();
                 set_login_info(
@@ -600,7 +600,7 @@ pub async fn login(
         }
     };
     //  验证密码是否正确
-    if !verify_password(login_req.password, user.password.unwrap_or("".to_string()))? {
+    if !verify_password(user.password.unwrap_or("".to_string()), login_req.password)? {
         msg = "密码错误".to_string();
         status = "0".to_string();
         set_login_info(
@@ -729,4 +729,16 @@ pub async fn get_user_info_permission(
         apis
     };
     Ok((user_info, permissions))
+}
+
+#[cfg(test)]
+mod tests {
+    use silent::prelude::argon2;
+
+    #[test]
+    fn test_generate_password() {
+        let password = "e10adc3949ba59abbe56e057f20f883e".to_string();
+        let hash = argon2::make_password(password).unwrap();
+        println!("{:?}", hash);
+    }
 }

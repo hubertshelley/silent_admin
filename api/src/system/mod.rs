@@ -17,7 +17,7 @@ mod sys_user_online;
 pub use common::get_captcha;
 use silent::prelude::{HandlerAppend, Route};
 pub use sys_user::login;
-pub use sys_user_online::log_out;
+pub use sys_user_online::logout;
 
 pub fn system_api() -> Route {
     Route::new("")

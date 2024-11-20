@@ -418,18 +418,18 @@ pub async fn get_admin_menu_by_role_ids(
     db: &DatabaseConnection,
     role_id: &str,
 ) -> Result<Vec<SysMenuTree>> {
-    let (menu_apis, _) = self::get_role_permissions(db, role_id).await?;
+    let (_menu_apis, _) = self::get_role_permissions(db, role_id).await?;
     //  todo 可能以后加条件判断
-    let router_all = get_menus(db, true, false, false).await?;
+    let _router_all = get_menus(db, true, false, false).await?;
     //  生成menus
-    let mut menus: Vec<MenuResp> = Vec::new();
-    for ele in router_all {
-        if menu_apis.contains(&ele.api) {
-            menus.push(ele);
-        }
-    }
-    let menu_data = self::get_menu_data(menus);
-    let menu_tree = self::get_menu_tree(menu_data, "0".to_string());
+    let menus: Vec<MenuResp> = Vec::new();
+    // for ele in router_all {
+    //     if menu_apis.contains(&ele.api) {
+    //         menus.push(ele);
+    //     }
+    // }
+    let menu_data = get_menu_data(menus);
+    let menu_tree = get_menu_tree(menu_data, "0".to_string());
     Ok(menu_tree)
 }
 
@@ -437,7 +437,7 @@ pub async fn get_admin_menu_by_role_ids(
 pub fn get_menu_tree(user_menus: Vec<SysMenuTree>, pid: String) -> Vec<SysMenuTree> {
     let mut menu_tree: Vec<SysMenuTree> = Vec::new();
     for mut user_menu in user_menus.clone() {
-        if user_menu.user_menu.pid == pid {
+        if user_menu.user_menu.parent_id == pid {
             user_menu.children = Some(get_menu_tree(
                 user_menus.clone(),
                 user_menu.user_menu.id.clone(),
@@ -477,32 +477,31 @@ pub fn get_menu_data2(menus: Vec<sys_menu::Model>) -> Vec<SysMenuTreeAll> {
 pub fn get_menu_data(menus: Vec<MenuResp>) -> Vec<SysMenuTree> {
     let mut menu_res: Vec<SysMenuTree> = Vec::new();
     for mut menu in menus {
-        menu.pid = menu.pid.trim().to_string();
+        menu.parent_id = menu.parent_id.trim().to_string();
         let meta = Meta {
             icon: menu.icon.clone(),
-            title: menu.menu_name.clone(),
+            title: menu.name.clone(),
             hidden: menu.visible.clone() != "1",
             link: if menu.path.clone().starts_with("http") {
                 Some(menu.path.clone())
             } else {
                 None
             },
-            no_cache: menu.is_cache.clone() != "1",
-            i18n: menu.i18n,
+            no_cache: menu.is_cache.clone() != 1,
         };
         let user_menu = UserMenu {
             meta,
             id: menu.id.clone(),
-            pid: menu.pid.clone(),
-            path: if !menu.path.clone().starts_with('/') && menu.pid.clone() == "0" {
+            parent_id: menu.parent_id.clone(),
+            path: if !menu.path.clone().starts_with('/') && menu.parent_id.clone() == "0" {
                 format!("/{}", menu.path.clone())
             } else {
                 menu.path.clone()
             },
             name: menu.path.clone(),
-            menu_name: menu.menu_name.clone(),
+            menu_name: menu.name.clone(),
             menu_type: menu.menu_type.clone(),
-            always_show: if menu.is_cache.clone() == "1" && menu.pid.clone() == "0" {
+            always_show: if menu.is_cache.clone() == 1 && menu.parent_id.clone() == "0" {
                 Some(true)
             } else {
                 None

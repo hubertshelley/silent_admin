@@ -1,5 +1,5 @@
 use common::jwt::AuthBody;
-use common::middlewares::authorization::{AuthUser, User};
+use common::middlewares::authorization::User;
 use dto::{
     common::res::ListData,
     system::sys_user::{
@@ -90,14 +90,14 @@ pub async fn login(mut req: Request) -> Result<AuthBody> {
 }
 /// 获取用户登录信息
 
-pub async fn get_info( req: Request) -> Result<UserInfo> {
-    let user = req.extensions().get::<AuthUser>().unwrap();
+pub async fn get_info(req: Request) -> Result<UserInfo> {
     let db = req.get_config()?;
-
+    let user = req.extensions().get::<User>().unwrap();
+    let user_id = user.id()?;
     let (role_ids_r, dept_ids_r, user_r) = join!(
-        system::sys_user_role::get_role_ids_by_user_id(db, &user.id),
-        system::sys_user_dept::get_dept_ids_by_user_id(db, &user.id),
-        system::sys_user::get_user_info_permission(db, &user.id),
+        system::sys_user_role::get_role_ids_by_user_id(db, user_id.as_str()),
+        system::sys_user_dept::get_dept_ids_by_user_id(db, user_id.as_str()),
+        system::sys_user::get_user_info_permission(db, user_id.as_str()),
     );
 
     let roles = role_ids_r?;
@@ -141,7 +141,7 @@ pub async fn change_status(mut req: Request) -> Result<String> {
 }
 // fresh_token 刷新token
 
-pub async fn fresh_token( req: Request) -> Result<AuthBody> {
+pub async fn fresh_token(req: Request) -> Result<AuthBody> {
     let user = req.extensions().get::<User>().unwrap();
     let res = system::sys_user::fresh_token(user).await;
     res.map_err(|e| e.into())

@@ -15,7 +15,7 @@ pub struct Res<T> {
 impl<T: Serialize> Res<T> {
     pub fn with_data(data: T) -> Self {
         Self {
-            code: Some(0),
+            code: Some(200),
             data: Some(data),
             msg: Some("请求成功".to_string()),
             time: Local::now().timestamp_millis(),

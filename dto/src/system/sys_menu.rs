@@ -26,24 +26,18 @@ pub struct SysMenuTreeAll {
 #[derive(Deserialize, Serialize, Debug, Clone, FromQueryResult, Default)]
 pub struct MenuResp {
     pub id: String,
-    pub pid: String,
+    pub name: String,
+    pub parent_id: String,
+    pub order_num: i32,
     pub path: String,
-    pub menu_name: String,
-    pub icon: String,
-    pub menu_type: String,
+    pub component: Option<String>,
     pub query: Option<String>,
-    pub order_sort: i32,
-    pub status: String,
-    pub api: String,
-    pub method: String,
-    pub component: String,
+    pub is_frame: i32,
+    pub is_cache: i32,
+    pub menu_type: String,
     pub visible: String,
-    pub is_frame: String,
-    pub is_cache: String,
-    pub data_scope: String,
-    pub log_method: String,
-    pub i18n: Option<String>,
-    pub data_cache_method: String,
+    pub status: String,
+    pub icon: String,
     pub remark: String,
 }
 
@@ -58,13 +52,13 @@ pub struct MenuRelated {
 #[derive(Serialize, Clone, Debug, Default)]
 pub struct UserMenu {
     pub id: String,
-    pub pid: String,
+    pub parent_id: String,
     pub always_show: Option<bool>,
     pub path: String,
     pub name: String,
     pub menu_name: String,
     pub menu_type: String,
-    pub component: String,
+    pub component: Option<String>,
     pub hidden: bool,
     pub meta: Meta,
 }
@@ -76,7 +70,6 @@ pub struct Meta {
     pub link: Option<String>,
     pub no_cache: bool,
     pub hidden: bool,
-    pub i18n: Option<String>,
 }
 
 #[derive(Serialize, Clone, Debug, Default)]

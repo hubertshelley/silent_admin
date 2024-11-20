@@ -15,7 +15,7 @@ dto = { path = "../dto" }
 entity = { path = "../entity" }
 configs = { path = "../configs" }
 
-silent = { workspace = true, features = ["security"] }
+silent = { workspace = true, features = ["security", "multipart"] }
 
 chrono = { workspace = true }
 regex = { workspace = true }

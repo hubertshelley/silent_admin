@@ -13,7 +13,7 @@ pub fn get_routes() -> Route {
                 Route::new("")
                     .append(Route::new("login").post(system::login)) // 登录
                     .append(Route::new("get_captcha").get(system::get_captcha)) // 获取验证码
-                    .append(Route::new("log_out").post(system::log_out)),
+                    .append(Route::new("logout").post(system::logout)),
             ),
         ) // 退出登录
         // 系统管理模块

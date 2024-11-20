@@ -28,18 +28,18 @@ async fn api_init_func() {
     let db = get_db_conn().await;
     let res = system::sys_menu::get_menus(&db, false, true, true).await;
     match res {
-        Ok(menus) => {
-            for menu in menus {
-                self::add_api(
-                    &db,
-                    &menu.id,
-                    &menu.api,
-                    &menu.menu_name,
-                    &menu.data_cache_method,
-                    &menu.log_method,
-                )
-                .await;
-            }
+        Ok(_menus) => {
+            // for menu in menus {
+            //     self::add_api(
+            //         &db,
+            //         &menu.id,
+            //         &menu.api,
+            //         &menu.menu_name,
+            //         &menu.data_cache_method,
+            //         &menu.log_method,
+            //     )
+            //     .await;
+            // }
             let apis = ALL_APIS.lock().await;
             info!("初始化时获取路由API成功:{:#?}", apis);
             drop(apis);

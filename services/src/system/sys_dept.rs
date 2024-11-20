@@ -203,7 +203,7 @@ pub fn create_menu_tree(depts: Vec<RespTree>, pid: String) -> Vec<RespTree> {
     let mut tree: Vec<RespTree> = Vec::new();
     for mut t in depts.clone() {
         if t.data.parent_id == pid {
-            t.children = Some(create_menu_tree(depts.clone(), t.data.dept_id.clone()));
+            t.children = Some(create_menu_tree(depts.clone(), t.data.id.clone()));
             tree.push(t.clone());
         }
     }

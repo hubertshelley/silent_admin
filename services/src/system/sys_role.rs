@@ -125,15 +125,15 @@ where
         .collect::<HashMap<String, MenuResp>>();
     // 组装角色权限数据
     let mut res: Vec<sys_role_api::SysRoleApiAddReq> = Vec::new();
-    for menu_id in menu_ids {
-        if let Some(menu) = menu_map.get(&menu_id) {
-            res.push(sys_role_api::SysRoleApiAddReq {
-                role_id: role_id.clone(),
-                api: menu.api.clone(),
-                method: Some(menu.method.clone()),
-            });
-        }
-    }
+    // for menu_id in menu_ids {
+    //     if let Some(menu) = menu_map.get(&menu_id) {
+    //         res.push(sys_role_api::SysRoleApiAddReq {
+    //             role_id: role_id.clone(),
+    //             api: menu.api.clone(),
+    //             method: Some(menu.method.clone()),
+    //         });
+    //     }
+    // }
     Ok(res)
 }
 
