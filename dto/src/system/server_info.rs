@@ -1,6 +1,7 @@
 use serde::Serialize;
 
 #[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct SysInfo {
     pub server: Server,
     pub cpu: Cpu,
@@ -11,6 +12,7 @@ pub struct SysInfo {
 }
 
 #[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Cpu {
     pub name: String,
     pub arch: String,
@@ -20,6 +22,7 @@ pub struct Cpu {
     pub total_use: f32,
 }
 #[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct CpuLoad {
     pub one: f64,
     pub five: f64,
@@ -27,6 +30,7 @@ pub struct CpuLoad {
 }
 
 #[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Memory {
     pub total_memory: u64,
     pub used_memory: u64,
@@ -35,6 +39,7 @@ pub struct Memory {
 }
 
 #[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Server {
     pub oper_sys_name: String,
     pub host_name: String,
@@ -42,6 +47,7 @@ pub struct Server {
     pub system_kerne: String,
 }
 #[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Process {
     pub name: String,
     pub used_memory: u64,
@@ -52,6 +58,7 @@ pub struct Process {
     pub disk_usage: DiskUsage,
 }
 #[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct DiskUsage {
     pub read_bytes: u64,
     pub total_read_bytes: u64,
@@ -60,6 +67,7 @@ pub struct DiskUsage {
 }
 
 #[derive(Debug, Serialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Network {
     pub name: String,
     pub received: u64,

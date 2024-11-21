@@ -24,6 +24,7 @@ pub struct ResInfo {
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiInfo {
     pub name: String,
     pub data_cache_method: String,

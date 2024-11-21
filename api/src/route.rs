@@ -1,6 +1,6 @@
 use silent::prelude::{HandlerAppend, Route};
 
-use super::system;
+use super::{monitor, system};
 
 pub fn get_routes() -> Route {
     // 路由配置
@@ -18,6 +18,8 @@ pub fn get_routes() -> Route {
         ) // 退出登录
         // 系统管理模块
         .append(Route::new("system").append(system::system_api()))
+        // 监控模块
+        .append(Route::new("monitor").append(monitor::monitor_api())) // 操作日志
     //  测试模块
     // .append(Route::new("test").append(test::test_api()))
 }

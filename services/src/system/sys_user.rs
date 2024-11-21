@@ -18,7 +18,7 @@ use dto::{
     },
 };
 use entity::prelude::SysUser;
-use entity::{sys_dept, sys_user};
+use entity::{sys_dept, sys_user, sys_user_dept};
 use sea_orm::{
     sea_query::Expr, ColumnTrait, DatabaseConnection, EntityTrait, JoinType, PaginatorTrait,
     QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait,
@@ -40,9 +40,16 @@ pub async fn get_sort_list(
     let mut s = SysUser::find()
         .join_rev(
             JoinType::LeftJoin,
-            sys_dept::Entity::belongs_to(sys_user::Entity)
+            sys_user_dept::Entity::belongs_to(sys_user::Entity)
+                .from(sys_user_dept::Column::UserId)
+                .to(sys_user::Column::Id)
+                .into(),
+        )
+        .join_rev(
+            JoinType::LeftJoin,
+            sys_dept::Entity::belongs_to(sys_user_dept::Entity)
                 .from(sys_dept::Column::Id)
-                .to(sys_user::Column::DeptId)
+                .to(sys_user_dept::Column::DeptId)
                 .into(),
         )
         .select_also(sys_dept::Entity);
@@ -78,12 +85,12 @@ pub async fn get_sort_list(
     }
     if let Some(x) = req.dept_id {
         if !x.is_empty() {
-            s = s.filter(sys_user::Column::DeptId.eq(x));
+            s = s.filter(sys_user_dept::Column::DeptId.eq(x));
         }
     }
     if let Some(x) = req.dept_ids {
         if !x.is_empty() {
-            s = s.filter(sys_user::Column::DeptId.is_in(x));
+            s = s.filter(sys_user_dept::Column::DeptId.is_in(x));
         }
     }
     if let Some(x) = req.begin_time {
@@ -116,17 +123,17 @@ pub async fn get_sort_list(
                 user: UserResp {
                     id: m.0.id.clone(),
                     user_name: m.0.user_name.clone(),
-                    user_nickname: m.0.nick_name.clone(),
-                    user_status: m.0.status.clone().unwrap_or("0".to_owned()),
-                    user_email: m.0.email.clone(),
+                    nick_name: m.0.nick_name.clone(),
+                    status: m.0.status.clone().unwrap_or("0".to_owned()),
+                    email: m.0.email.clone(),
                     sex: m.0.sex.clone().unwrap_or("0".to_owned()),
                     avatar: m.0.avatar.clone().unwrap_or("".to_owned()),
                     dept_id: m.0.dept_id.clone().unwrap_or("".to_owned()),
                     remark: m.0.remark.clone(),
-                    is_admin: "1".to_owned(),
+                    admin: CFG.system.super_user.contains(&m.0.id),
                     phone_number: m.0.phone_number.clone(),
                     role_id: "".to_owned(),
-                    created_time: Some(m.0.create_time),
+                    create_time: Some(m.0.create_time),
                 },
                 dept: DeptResp {
                     id: v.id.clone(),
@@ -217,17 +224,17 @@ pub async fn get_by_id(db: &DatabaseConnection, user_id: &str) -> Result<UserWit
                     user: UserResp {
                         id: u.id.clone(),
                         user_name: u.user_name.clone(),
-                        user_nickname: u.nick_name.clone(),
-                        user_status: u.status.clone().unwrap_or("0".to_owned()),
-                        user_email: u.email.clone(),
+                        nick_name: u.nick_name.clone(),
+                        status: u.status.clone().unwrap_or("0".to_owned()),
+                        email: u.email.clone(),
                         sex: u.sex.clone().unwrap_or("0".to_owned()),
                         avatar: u.avatar.clone().unwrap_or("".to_owned()),
                         dept_id: u.dept_id.clone().unwrap_or("".to_owned()),
                         remark: u.remark.clone(),
-                        is_admin: "1".to_owned(),
+                        admin: CFG.system.super_user.contains(&u.id),
                         phone_number: u.phone_number.clone(),
                         role_id: "".to_owned(),
-                        created_time: Some(u.create_time),
+                        create_time: Some(u.create_time),
                     },
                     dept: DeptResp {
                         id: v.id.clone(),
@@ -541,7 +548,7 @@ pub async fn login(
     header: HeaderMap,
 ) -> Result<AuthBody> {
     let mut msg = "登录成功".to_string();
-    let mut status = "1".to_string();
+    let mut status = "0".to_string();
     // 验证验证码
     if utils::rand_utils::encrypt_password(&login_req.code.to_lowercase(), "") != login_req.uuid {
         msg = "验证码错误".to_string();

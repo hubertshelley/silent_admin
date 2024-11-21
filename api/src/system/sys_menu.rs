@@ -25,9 +25,9 @@ pub async fn get_sort_list(mut req: Request) -> Result<ListData<sys_menu::Model>
 /// db 数据库连接 使用db.0
 
 pub async fn get_by_id(mut req: Request) -> Result<MenuResp> {
-    let search_req = req.params_parse()?;
+    let id = req.get_path_params("id")?;
     let db = req.get_config()?;
-    let res = system::sys_menu::get_by_id(db, search_req).await;
+    let res = system::sys_menu::get_by_id(db, id).await;
     res.map_err(|e| e.into())
 }
 

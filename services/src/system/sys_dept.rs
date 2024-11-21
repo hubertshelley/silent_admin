@@ -10,8 +10,8 @@ use dto::{
 use entity::prelude::{SysDept, SysUserDept};
 use entity::{sys_dept, sys_user_dept, sys_user_role};
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, Order, PaginatorTrait,
-    QueryFilter, QueryOrder, QuerySelect, QueryTrait, Set, TransactionTrait,
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, FromQueryResult, Order,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, QueryTrait, Set, TransactionTrait,
 };
 
 /// get_list 获取列表
@@ -171,20 +171,20 @@ pub async fn get_by_id(db: &DatabaseConnection, id: &str) -> Result<DeptResp> {
 }
 
 /// get_all 获取全部
-pub async fn get_all(db: &DatabaseConnection) -> Result<Vec<DeptResp>> {
-    let s = SysDept::find()
+pub async fn get_all<T: FromQueryResult>(db: &DatabaseConnection) -> Result<Vec<T>> {
+    SysDept::find()
         .filter(sys_dept::Column::DelFlag.eq(0))
-        .filter(sys_dept::Column::Status.eq("1"))
+        .filter(sys_dept::Column::Status.eq("0"))
         .order_by(sys_dept::Column::OrderNum, Order::Asc)
-        .into_model::<DeptResp>()
+        .into_model()
         .all(db)
-        .await?;
-    Ok(s)
+        .await
+        .map_err(|e| anyhow!("获取失败:{}", e))
 }
 
 pub async fn get_dept_tree(db: &DatabaseConnection) -> Result<Vec<RespTree>> {
     // 获取全部数据
-    let dept_list = get_all(db).await.unwrap();
+    let dept_list = get_all(db).await?;
 
     // 创建树
     let mut tree: Vec<RespTree> = Vec::new();

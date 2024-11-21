@@ -2,6 +2,7 @@ use chrono::NaiveDateTime;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysJobLogSearchReq {
     pub job_log_id: Option<String>,
     pub job_id: Option<String>,
@@ -14,6 +15,7 @@ pub struct SysJobLogSearchReq {
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysJobLogAddReq {
     pub job_id: String,
     pub job_name: String,
@@ -31,11 +33,13 @@ pub struct SysJobLogAddReq {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SysJobLogDeleteReq {
     pub job_log_ids: Vec<String>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysJobLogCleanReq {
     pub job_id: String,
 }

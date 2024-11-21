@@ -14,21 +14,3 @@ pub async fn get_captcha(_req: Request) -> Result<CaptchaImage> {
     Ok(res)
 }
 
-pub async fn get_server_info(_req: Request) -> Result<SysInfo> {
-    let res = system::server_info::get_oper_sys_info();
-
-    Ok(res)
-}
-
-//  这个不知道为啥有问题
-pub async fn get_server_info_sse(_req: Request) -> Result<Response> {
-    let stream = stream::repeat_with(|| {
-        let sys_info = system::server_info::get_oper_sys_info();
-        SSEEvent::default()
-            .data(serde_json::to_string(&sys_info).unwrap_or_else(|_| "0".to_string()))
-    })
-    .map(Ok)
-    .throttle(Duration::from_secs(1));
-
-    sse_reply(stream)
-}

@@ -105,13 +105,13 @@ pub async fn check_router_is_exist_update(
 ) -> Result<bool> {
     let s1 = SysMenu::find()
         .filter(sys_menu::Column::Path.eq(req.path.clone()))
-        .filter(sys_menu::Column::ParentId.eq(req.pid.clone()))
+        .filter(sys_menu::Column::ParentId.eq(req.parent_id.clone()))
         .filter(sys_menu::Column::MenuType.ne("F"))
         .filter(sys_menu::Column::Id.ne(req.id.clone()));
     let count1 = s1.count(db).await?;
     let s2 = SysMenu::find()
-        .filter(sys_menu::Column::Name.eq(req.menu_name.clone()))
-        .filter(sys_menu::Column::ParentId.eq(req.pid.clone()))
+        .filter(sys_menu::Column::Name.eq(req.name.clone()))
+        .filter(sys_menu::Column::ParentId.eq(req.parent_id.clone()))
         .filter(sys_menu::Column::MenuType.ne("F"))
         .filter(sys_menu::Column::Id.ne(req.id.clone()));
     let count2 = s2.count(db).await?;
@@ -124,12 +124,12 @@ where
 {
     let s1 = SysMenu::find()
         .filter(sys_menu::Column::Path.eq(req.path.clone()))
-        .filter(sys_menu::Column::ParentId.eq(req.pid.clone()))
+        .filter(sys_menu::Column::ParentId.eq(req.parent_id.clone()))
         .filter(sys_menu::Column::MenuType.ne("F"));
     let count1 = s1.count(db).await?;
     let s2 = SysMenu::find()
-        .filter(sys_menu::Column::Name.eq(req.clone().menu_name))
-        .filter(sys_menu::Column::ParentId.eq(req.pid.clone()));
+        .filter(sys_menu::Column::Name.eq(req.clone().name))
+        .filter(sys_menu::Column::ParentId.eq(req.parent_id.clone()));
     let count2 = s2.count(db).await?;
     Ok(count1 > 0 || count2 > 0)
 }
@@ -140,19 +140,18 @@ pub async fn add(db: &DatabaseConnection, req: SysMenuAddReq) -> Result<String> 
     if check_router_is_exist_add(db, req.clone()).await? {
         return Err(anyhow!("路径或者名称重复"));
     }
-    let reqq = req.clone();
     let uid = next_id()?;
     let active_model = sys_menu::ActiveModel {
         id: Set(uid.clone()),
-        parent_id: Set(Some(req.pid)),
-        name: Set(req.menu_name),
+        parent_id: Set(Some(req.parent_id)),
+        name: Set(req.name),
         icon: Set(req.icon),
-        remark: Set(Some(req.remark)),
+        remark: Set(req.remark),
         menu_type: Set(Some(req.menu_type)),
         query: Set(req.query),
         // api: Set(req.api),
         // method: Set(req.method.unwrap_or_default()),
-        order_num: Set(Some(req.order_sort)),
+        order_num: Set(Some(req.order_num)),
         status: Set(Some(req.status)),
         visible: Set(Some(req.visible)),
         path: Set(req.path),
@@ -170,16 +169,16 @@ pub async fn add(db: &DatabaseConnection, req: SysMenuAddReq) -> Result<String> 
     let _ = SysMenu::insert(active_model).exec(&txn).await?;
     txn.commit().await?;
     let res = format!("{} 添加成功", &uid);
-    // 添加api到全局
-    service_utils::ApiUtils::add_api(
-        db,
-        &uid,
-        &reqq.api,
-        &reqq.menu_name,
-        &reqq.data_cache_method,
-        &reqq.log_method,
-    )
-    .await;
+    // // 添加api到全局
+    // service_utils::ApiUtils::add_api(
+    //     db,
+    //     &uid,
+    //     &reqq.api,
+    //     &reqq.menu_name,
+    //     &reqq.data_cache_method,
+    //     &reqq.log_method,
+    // )
+    // .await;
     Ok(res)
 }
 
@@ -223,19 +222,19 @@ pub async fn edit(db: &DatabaseConnection, req: SysMenuEditReq) -> Result<String
     let now: NaiveDateTime = Local::now().naive_local();
     let act = sys_menu::ActiveModel {
         id: Set(uid.clone()),
-        parent_id: Set(Some(req.pid)),
-        name: Set(req.menu_name),
+        parent_id: Set(Some(req.parent_id)),
+        name: Set(req.name.clone()),
         icon: Set(req.icon),
-        remark: Set(Some(req.remark)),
+        remark: Set(req.remark),
         // api: Set(req.api),
         // method: Set(req.method.unwrap_or_default()),
         query: Set(req.query),
         menu_type: Set(Some(req.menu_type)),
-        order_num: Set(Some(req.order_sort)),
+        order_num: Set(Some(req.order_num)),
         status: Set(Some(req.status)),
         visible: Set(Some(req.visible)),
         path: Set(Some(req.path)),
-        component: Set(Some(req.component)),
+        component: Set(req.component),
         // data_scope: Set(req.data_scope),
         is_frame: Set(Some(req.is_frame)),
         is_cache: Set(Some(req.is_cache)),
@@ -269,7 +268,7 @@ pub async fn edit(db: &DatabaseConnection, req: SysMenuEditReq) -> Result<String
     //     // .expect("更新api失败");
     // });
 
-    let res = format!("{} 修改成功", uid);
+    let res = format!("{} 修改成功", req.name);
     Ok(res)
 }
 
@@ -295,15 +294,11 @@ pub async fn update_log_cache_method(
 }
 
 /// get_user_by_id 获取用户Id获取用户
-pub async fn get_by_id(db: &DatabaseConnection, search_req: SysMenuSearchReq) -> Result<MenuResp> {
+pub async fn get_by_id(db: &DatabaseConnection, id: String) -> Result<MenuResp> {
     let mut s = SysMenu::find();
-    s = s.filter(sys_menu::Column::DelFlag.eq(0));
-    //
-    if let Some(x) = search_req.id {
-        s = s.filter(sys_menu::Column::Id.eq(x));
-    } else {
-        return Err(anyhow!("请求参数错误"));
-    }
+    s = s
+        .filter(sys_menu::Column::DelFlag.eq(0))
+        .filter(sys_menu::Column::Id.eq(id));
 
     let res = match s.into_model::<MenuResp>().one(db).await? {
         Some(m) => m,
@@ -336,7 +331,7 @@ where
         s = s.filter(sys_menu::Column::MenuType.eq("F"));
     };
     if is_only_enabled {
-        s = s.filter(sys_menu::Column::Status.eq("1"));
+        s = s.filter(sys_menu::Column::Status.eq("0"));
     };
 
     let res = s
@@ -442,6 +437,30 @@ pub fn get_menu_tree(user_menus: Vec<SysMenuTree>, pid: String) -> Vec<SysMenuTr
                 user_menus.clone(),
                 user_menu.user_menu.id.clone(),
             ));
+            if user_menu.user_menu.menu_type == "M" {
+                if user_menu.user_menu.parent_id == "0" {
+                    user_menu.user_menu.component = Some("Layout".to_string());
+                    if user_menu.user_menu.meta.link.is_none() {
+                        user_menu.user_menu.path.insert(0, '/');
+                    }
+                } else {
+                    user_menu.user_menu.component = Some("ParentView".to_string());
+                }
+
+                if user_menu.user_menu.is_frame == 1 {
+                    user_menu.user_menu.redirect = Some("noRedirect".to_string())
+                }
+
+                if user_menu.user_menu.meta.link.is_none() {
+                    if user_menu.user_menu.is_frame == 0 {
+                        user_menu.user_menu.component = Some("InnerLink".to_string());
+                    }
+                }
+
+                if !user_menu.children.as_ref().unwrap().is_empty() {
+                    user_menu.user_menu.always_show = Some(true);
+                }
+            }
             menu_tree.push(user_menu.clone());
         }
     }
@@ -481,33 +500,32 @@ pub fn get_menu_data(menus: Vec<MenuResp>) -> Vec<SysMenuTree> {
         let meta = Meta {
             icon: menu.icon.clone(),
             title: menu.name.clone(),
-            hidden: menu.visible.clone() != "1",
+            hidden: menu.visible.clone() != "0",
             link: if menu.path.clone().starts_with("http") {
                 Some(menu.path.clone())
             } else {
                 None
             },
-            no_cache: menu.is_cache.clone() != 1,
+            no_cache: menu.is_cache.clone() != 0,
         };
         let user_menu = UserMenu {
             meta,
             id: menu.id.clone(),
             parent_id: menu.parent_id.clone(),
-            path: if !menu.path.clone().starts_with('/') && menu.parent_id.clone() == "0" {
-                format!("/{}", menu.path.clone())
-            } else {
-                menu.path.clone()
-            },
-            name: menu.path.clone(),
             menu_name: menu.name.clone(),
             menu_type: menu.menu_type.clone(),
+            path: menu.path.clone(),
+            name: menu.path.clone().as_str()[0..1].to_uppercase()
+                + &menu.path.clone().as_str()[1..],
             always_show: if menu.is_cache.clone() == 1 && menu.parent_id.clone() == "0" {
                 Some(true)
             } else {
                 None
             },
             component: menu.component.clone(),
-            hidden: menu.visible.clone() == "0",
+            hidden: menu.visible.clone() != "0",
+            is_frame: menu.is_frame,
+            ..Default::default()
         };
         let menu_tree = SysMenuTree {
             user_menu,

@@ -1,5 +1,7 @@
 use serde::Deserialize;
+
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysDictTypeSearchReq {
     pub dict_type_id: Option<String>,
     pub dict_name: Option<String>,
@@ -10,6 +12,7 @@ pub struct SysDictTypeSearchReq {
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysDictTypeAddReq {
     pub dict_name: String,
     pub dict_type: String,
@@ -18,11 +21,13 @@ pub struct SysDictTypeAddReq {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SysDictTypeDeleteReq {
     pub dict_type_ids: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysDictTypeEditReq {
     pub dict_type_id: String,
     pub dict_name: String,

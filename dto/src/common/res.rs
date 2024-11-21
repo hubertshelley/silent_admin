@@ -1,9 +1,11 @@
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
-use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 /// 查 数据返回
 pub struct ListData<T> {
+    #[serde(rename = "data")]
     pub list: Vec<T>,
     pub total: u64,
     pub total_pages: u64,
@@ -11,6 +13,7 @@ pub struct ListData<T> {
 }
 /// 分页参数
 #[derive(Deserialize, Clone, Debug, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct PageParams {
     pub page_num: Option<u64>,
     pub page_size: Option<u64>,
@@ -18,6 +21,7 @@ pub struct PageParams {
 
 /// 数据统一返回格式
 #[derive(Debug, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct Res<T> {
     pub code: Option<i32>,
     pub data: Option<T>,

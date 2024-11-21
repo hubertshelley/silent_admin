@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct SysLoginLogSearchReq {
     pub ip: Option<String>,
     pub user_name: Option<String>,
@@ -12,6 +13,7 @@ pub struct SysLoginLogSearchReq {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SysLoginLogDeleteReq {
     pub info_ids: Vec<String>,
 }

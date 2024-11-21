@@ -45,7 +45,7 @@ pub fn init_route(route: Route) -> RootRoute {
     let authorization = JWTAuthorizationMiddleware::default();
     let permission =
         PermissionMiddleware::new(vec![".*/getToken.*".to_string(), ".*/comm.*".to_string()]);
-    let cors = Cors::new().origin("*").headers("*");
+    let cors = Cors::new().origin("*").headers("*").methods("*");
     let exception_handler = ExceptionHandler::new(exception_handler);
     info!("Routes initialized");
     route.path = CFG.server.api_prefix.clone();

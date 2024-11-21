@@ -17,6 +17,7 @@ pub struct SysMenuSearchReq {
 }
 
 #[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysMenuTreeAll {
     #[serde(flatten)]
     pub menu: sys_menu::Model,
@@ -24,6 +25,7 @@ pub struct SysMenuTreeAll {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, FromQueryResult, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct MenuResp {
     pub id: String,
     pub name: String,
@@ -38,10 +40,11 @@ pub struct MenuResp {
     pub visible: String,
     pub status: String,
     pub icon: String,
-    pub remark: String,
+    pub remark: Option<String>,
 }
 
 #[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct MenuRelated {
     #[serde(flatten)]
     pub menu: sys_menu::Model,
@@ -50,25 +53,35 @@ pub struct MenuRelated {
 }
 
 #[derive(Serialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct UserMenu {
     pub id: String,
     pub parent_id: String,
-    pub always_show: Option<bool>,
-    pub path: String,
-    pub name: String,
+    #[serde(skip_serializing)]
     pub menu_name: String,
+    #[serde(skip_serializing)]
     pub menu_type: String,
-    pub component: Option<String>,
+    #[serde(skip_serializing)]
+    pub is_frame: i32,
+    pub name: String,
+    pub path: String,
     pub hidden: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redirect: Option<String>,
+    pub component: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub always_show: Option<bool>,
     pub meta: Meta,
 }
 
 #[derive(Serialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct Meta {
-    pub icon: String,
     pub title: String,
-    pub link: Option<String>,
+    pub icon: String,
     pub no_cache: bool,
+    pub link: Option<String>,
+    #[serde(skip_serializing)]
     pub hidden: bool,
 }
 
@@ -80,58 +93,52 @@ pub struct SysMenuTree {
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysMenuAddReq {
-    pub pid: String,
+    pub parent_id: String,
     pub path: Option<String>,
-    pub menu_name: String,
+    pub name: String,
     pub icon: Option<String>,
     pub menu_type: String,
     pub query: Option<String>,
-    pub order_sort: i32,
+    pub order_num: i32,
     pub status: String,
-    pub api: String,
     pub method: Option<String>,
     pub component: Option<String>,
     pub visible: String,
     pub is_frame: i32,
     pub is_cache: i32,
-    pub data_scope: String,
-    pub log_method: String,
-    pub data_cache_method: String,
-    pub i18n: Option<String>,
-    pub remark: String,
+    pub remark: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SysMenuDeleteReq {
     pub id: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SysMenuEditReq {
     pub id: String,
-    pub pid: String,
+    pub parent_id: String,
     pub path: String,
-    pub menu_name: String,
+    pub name: String,
     pub icon: Option<String>,
     pub menu_type: String,
     pub query: Option<String>,
-    pub order_sort: i32,
+    pub order_num: i32,
     pub status: String,
-    pub api: String,
     pub method: Option<String>,
-    pub component: String,
+    pub component: Option<String>,
     pub visible: String,
     pub is_frame: i32,
     pub is_cache: i32,
-    pub data_scope: String,
-    pub log_method: String,
-    pub i18n: Option<String>,
-    pub data_cache_method: String,
-    pub remark: String,
+    pub remark: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct LogCacheEditReq {
     pub id: String,
     pub log_method: String,

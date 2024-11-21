@@ -1,6 +1,8 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysJobSearchReq {
     pub job_id: Option<String>,
     pub job_name: Option<String>,
@@ -9,6 +11,7 @@ pub struct SysJobSearchReq {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct SysJobAddReq {
     pub task_id: i64,
     pub task_count: i64,
@@ -24,11 +27,13 @@ pub struct SysJobAddReq {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SysJobDeleteReq {
     pub job_ids: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysJobEditReq {
     pub job_id: String,
     pub task_id: i64,
@@ -45,23 +50,27 @@ pub struct SysJobEditReq {
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysJobStatusReq {
     pub job_id: String,
     pub status: String,
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct JobId {
     pub job_id: String,
     pub task_id: i64,
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ValidateReq {
     pub cron_str: String,
 }
 
 #[derive(Serialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ValidateRes {
     pub validate: bool,
     pub next_ten: Option<Vec<NaiveDateTime>>,

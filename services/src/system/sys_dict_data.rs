@@ -197,14 +197,9 @@ pub async fn get_by_id(
 
 pub async fn get_by_type(
     db: &DatabaseConnection,
-    search_req: SysDictDataSearchReq,
+    dict_type: String,
 ) -> Result<Vec<sys_dict_data::Model>> {
-    let mut s = SysDictData::find();
-    if let Some(x) = search_req.dict_type {
-        s = s.filter(sys_dict_data::Column::Type.eq(x));
-    } else {
-        return Err(anyhow!("请输入字典类型",));
-    }
+    let mut s = SysDictData::find().filter(sys_dict_data::Column::Type.eq(dict_type));
 
     let res = s.order_by_asc(sys_dict_data::Column::Sort).all(db).await?;
     Ok(res)

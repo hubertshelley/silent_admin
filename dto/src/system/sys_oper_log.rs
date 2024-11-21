@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysOperLogSearchReq {
     pub oper_id: Option<String>,
     pub title: Option<String>,
@@ -12,6 +13,7 @@ pub struct SysOperLogSearchReq {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SysOperLogDeleteReq {
     pub oper_log_ids: Vec<String>,
 }

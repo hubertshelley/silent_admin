@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ClientNetInfo {
     pub ip: String,
     pub location: String,
@@ -8,6 +9,7 @@ pub struct ClientNetInfo {
 }
 
 #[derive(Deserialize, Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UserAgentInfo {
     pub browser: String,
     pub os: String,
@@ -15,6 +17,7 @@ pub struct UserAgentInfo {
 }
 
 #[derive(Deserialize, Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ClientInfo {
     pub net: ClientNetInfo,
     pub ua: UserAgentInfo,

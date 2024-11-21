@@ -1,6 +1,7 @@
 use serde::Deserialize;
 
 #[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysUpdateLogAddReq {
     pub app_version: String,
     pub backend_version: String,
@@ -9,6 +10,7 @@ pub struct SysUpdateLogAddReq {
 }
 
 #[derive(Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct SysUpdateLogEditReq {
     pub id: String,
     pub app_version: String,
@@ -18,6 +20,7 @@ pub struct SysUpdateLogEditReq {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SysUpdateLogDeleteReq {
     pub id: String,
 }

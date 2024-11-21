@@ -5,7 +5,6 @@ mod sys_dict_data;
 mod sys_dict_type;
 // mod sys_job;
 // mod sys_job_log;
-mod sys_login_log;
 mod sys_menu;
 mod sys_oper_log;
 mod sys_post;
@@ -28,13 +27,11 @@ pub fn system_api() -> Route {
         .append(Route::new("dept").append(sys_dept_api())) // 部门模块
         .append(Route::new("role").append(sys_role_api())) // 角色模块
         .append(Route::new("menu").append(sys_menu_api())) // 路由 菜单 模块
-        .append(Route::new("login-log").append(sys_login_log_api())) // 登录日志模块
         .append(Route::new("online").append(sys_user_online_api())) // 在线用户
         .append(Route::new("job").append(sys_job_api())) // 定时任务
         .append(Route::new("job_log").append(sys_job_log_api())) // 定时任务日志
         .append(Route::new("oper_log").append(sys_oper_log_api())) // 操作日志
         .append(Route::new("api_db").append(sys_api_db_api())) // 操作日志
-        .append(Route::new("monitor").append(sys_monitor_api())) // 操作日志
         .append(Route::new("update_log").append(sys_update_log_api())) // 更新日志
 }
 
@@ -55,6 +52,7 @@ fn sys_user_api() -> Route {
         .append(Route::new("change_dept").put(sys_user::change_dept)) // 切换部门
         .append(Route::new("fresh_token").put(sys_user::fresh_token)) // 修改状态
         .append(Route::new("update_avatar").post(sys_user::update_avatar)) // 修改头像
+        .append(Route::new("deptTree").get(sys_dept::get_dept_tree)) // 获取部门树
 }
 
 fn sys_dict_type_api() -> Route {
@@ -72,7 +70,7 @@ fn sys_dict_data_api() -> Route {
         .append(Route::new("list").get(sys_dict_data::get_sort_list)) // 获取全部字典数据
         .append(Route::new("get_all").get(sys_dict_data::get_all)) // 获取全部字典数据
         .append(Route::new("get_by_id").get(sys_dict_data::get_by_id)) // 按id获取字典数据
-        .append(Route::new("get_by_type").get(sys_dict_data::get_by_type)) // 按id获取字典数据
+        .append(Route::new("type/<type:str>").get(sys_dict_data::get_by_type)) // 按id获取字典数据
         .append(Route::new("add").post(sys_dict_data::add)) // 添加字典数据
         .append(Route::new("edit").put(sys_dict_data::edit)) // 更新字典数据
         .append(Route::new("delete").delete(sys_dict_data::delete)) // 硬删除字典数据
@@ -92,7 +90,6 @@ fn sys_dept_api() -> Route {
     Route::new("")
         .append(Route::new("list").get(sys_dept::get_sort_list)) // 获取全部部门
         .append(Route::new("get_all").get(sys_dept::get_all)) // 获取全部部门
-        .append(Route::new("get_dept_tree").get(sys_dept::get_dept_tree)) // 获取部门树
         .append(Route::new("get_by_id").get(sys_dept::get_by_id)) // 按id获取部门
         .append(Route::new("add").post(sys_dept::add)) // 添加部门
         .append(Route::new("edit").put(sys_dept::edit)) // 更新部门
@@ -116,21 +113,14 @@ fn sys_role_api() -> Route {
 fn sys_menu_api() -> Route {
     Route::new("")
         .append(Route::new("list").get(sys_menu::get_sort_list)) // 获取全部菜单
-        .append(Route::new("get_by_id").get(sys_menu::get_by_id)) // 按id获取菜单
         .append(Route::new("add").post(sys_menu::add)) // 添加菜单
         .append(Route::new("edit").put(sys_menu::edit)) // 更新菜单
         .append(Route::new("update_log_cache_method").put(sys_menu::update_log_cache_method)) // 更新api缓存方式和日志记录方式
         .append(Route::new("delete").delete(sys_menu::delete)) // 硬删除菜单
         .append(Route::new("get_all_enabled_menu_tree").get(sys_menu::get_all_enabled_menu_tree)) // 获取全部正常的路由菜单树
-        .append(Route::new("get_routers").get(sys_menu::get_routers)) // 获取用户菜单树
+        .append(Route::new("getRouters").get(sys_menu::get_routers)) // 获取用户菜单树
         .append(Route::new("get_auth_list").get(sys_menu::get_related_api_and_db))
-}
-
-fn sys_login_log_api() -> Route {
-    Route::new("")
-        .append(Route::new("list").get(sys_login_log::get_sort_list)) // 获取全部登录日志
-        .append(Route::new("clean").delete(sys_login_log::clean)) // 清空登录日志
-        .append(Route::new("delete").delete(sys_login_log::delete)) // 硬删除登录日志
+        .append(Route::new("<id:str>").get(sys_menu::get_by_id)) // 按id获取菜单
 }
 fn sys_user_online_api() -> Route {
     Route::new("")
@@ -168,12 +158,6 @@ fn sys_api_db_api() -> Route {
     Route::new("")
     // .append(Route::new("get_by_id").get(sys_api_db::get_by_id)) // 按id获取
     // .append(Route::new("add").post(sys_api_db::add)) // 添加
-}
-
-fn sys_monitor_api() -> Route {
-    Route::new("")
-        .append(Route::new("server").get(common::get_server_info)) // 服务器信息
-        .append(Route::new("server-event").get(common::get_server_info_sse)) // 服务器信息(SSE)
 }
 
 fn sys_update_log_api() -> Route {
