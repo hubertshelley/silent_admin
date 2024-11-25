@@ -1,9 +1,10 @@
 use common::jwt::AuthBody;
 use common::middlewares::authorization::User;
+use dto::system::sys_user::PostRoleListResp;
 use dto::{
     common::res::ListData,
     system::sys_user::{
-        ChangeDeptReq, ChangeRoleReq, ChangeStatusReq, ResetPwdReq, SysUserSearchReq,
+        ChangeDeptReq, ChangeRoleReq, ChangeStatusReq, ResetPwdReq,
         UpdateProfileReq, UserInfo, UserInformation, UserLoginReq, UserWithDept,
     },
 };
@@ -13,9 +14,12 @@ use silent::Result;
 use silent::{Request, SilentError};
 use tokio::join;
 
-/// get_user_list 获取用户列表
-/// page_params 分页参数
-
+/// 获取岗位角色列表
+pub async fn get_post_role_list(req: Request) -> Result<PostRoleListResp> {
+    let db = req.get_config()?;
+    let res = system::sys_user::get_post_role_list(db).await;
+    res.map_err(|e| SilentError::from(e))
+}
 pub async fn get_sort_list(mut req: Request) -> Result<ListData<UserWithDept>> {
     let page_params = req.params_parse()?;
     let params = req.params_parse()?;
@@ -26,11 +30,8 @@ pub async fn get_sort_list(mut req: Request) -> Result<ListData<UserWithDept>> {
 
 /// get_user_by_id 获取用户Id获取用户
 
-pub async fn get_by_id(mut req: Request) -> Result<UserInformation> {
-    let params: SysUserSearchReq = req.params_parse()?;
-    let user_id = params
-        .user_id
-        .ok_or::<SilentError>("用户id不能为空".to_string().into())?;
+pub async fn get_by_id(req: Request) -> Result<UserInformation> {
+    let user_id: String = req.get_path_params("id")?;
     let db = req.get_config()?;
     let res = system::sys_user::get_user_info_by_id(db, &user_id).await;
     res.map_err(|e| e.into())

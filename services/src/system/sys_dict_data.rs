@@ -199,7 +199,7 @@ pub async fn get_by_type(
     db: &DatabaseConnection,
     dict_type: String,
 ) -> Result<Vec<sys_dict_data::Model>> {
-    let mut s = SysDictData::find().filter(sys_dict_data::Column::Type.eq(dict_type));
+    let s = SysDictData::find().filter(sys_dict_data::Column::Type.eq(dict_type));
 
     let res = s.order_by_asc(sys_dict_data::Column::Sort).all(db).await?;
     Ok(res)
@@ -210,7 +210,7 @@ pub async fn get_by_type(
 pub async fn get_all(db: &DatabaseConnection) -> Result<Vec<sys_dict_data::Model>> {
     let s = SysDictData::find()
         .filter(sys_dict_data::Column::DelFlag.eq(0))
-        .filter(sys_dict_data::Column::Status.eq("1"))
+        .filter(sys_dict_data::Column::Status.eq("0"))
         .order_by(sys_dict_data::Column::Id, Order::Asc)
         .all(db)
         .await?;

@@ -12,6 +12,10 @@ pub async fn edit_user_role<C>(
 where
     C: TransactionTrait + ConnectionTrait,
 {
+    if role_ids.is_empty() {
+        return Ok(());
+    }
+    // 删除用户角色
     // 添加用户角色
     sys_user_role::Entity::insert_many(
         role_ids
@@ -106,6 +110,9 @@ pub async fn delete_user_role_by_user_ids<C>(
 where
     C: TransactionTrait + ConnectionTrait,
 {
+    if user_ids.is_empty() {
+        return Ok(());
+    }
     let mut d =
         sys_user_role::Entity::delete_many().filter(sys_user_role::Column::UserId.is_in(user_ids));
     if let Some(role_id) = role_id {

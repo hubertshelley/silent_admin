@@ -1,8 +1,8 @@
 use silent::{Handler, MiddleWareHandler, Next, Request, Response, Result as SilentResult};
 
+use crate::middlewares::authorization::AuthUser;
 use configs::CFG;
 use dto::common::ctx::ReqCtx;
-use crate::middlewares::authorization::AuthUser;
 
 pub struct CtxMiddleware;
 
@@ -16,7 +16,11 @@ impl MiddleWareHandler for CtxMiddleware {
         let path_params = req.uri().query().unwrap_or("").to_string();
 
         let req_ctx = ReqCtx {
-            ori_uri: if path_params.is_empty() { ori_uri_path } else { ori_uri_path + "?" + &path_params },
+            ori_uri: if path_params.is_empty() {
+                ori_uri_path
+            } else {
+                ori_uri_path + "?" + &path_params
+            },
             path,
             path_params,
             method: method.to_string(),
@@ -26,6 +30,7 @@ impl MiddleWareHandler for CtxMiddleware {
             //     name: user.name,
             // },
             data: "".to_string(),
+            remote_addr: req.remote().to_string(),
         };
 
         req.extensions_mut().insert(req_ctx);

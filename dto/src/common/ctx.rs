@@ -6,6 +6,7 @@ pub struct ReqCtx {
     pub method: String,
     // pub user: UserInfo,
     pub data: String,
+    pub remote_addr: String,
 }
 
 #[derive(Debug, Clone, Default)]

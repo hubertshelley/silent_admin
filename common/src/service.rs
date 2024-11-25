@@ -50,8 +50,8 @@ pub fn init_route(route: Route) -> RootRoute {
     info!("Routes initialized");
     route.path = CFG.server.api_prefix.clone();
     route
-        .hook(exception_handler)
         .root_hook(cors)
+        .hook(exception_handler)
         .hook(authorization)
         .hook(permission)
         .route()

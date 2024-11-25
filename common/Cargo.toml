@@ -12,6 +12,7 @@ version.workspace = true
 [dependencies]
 configs = { workspace = true }
 dto = { workspace = true }
+entity = { workspace = true }
 
 anyhow = { workspace = true, features = ["backtrace"] }
 once_cell = { workspace = true }

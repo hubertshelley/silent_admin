@@ -204,7 +204,7 @@ pub async fn get_by_id(
 pub async fn get_all(db: &DatabaseConnection) -> Result<Vec<sys_dict_type::Model>> {
     let s = SysDictType::find()
         .filter(sys_dict_type::Column::DelFlag.eq(0))
-        .filter(sys_dict_type::Column::Status.eq("1"))
+        .filter(sys_dict_type::Column::Status.eq("0"))
         .order_by(sys_dict_type::Column::Id, Order::Asc)
         .all(db)
         .await?;

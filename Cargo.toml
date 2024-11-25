@@ -23,6 +23,7 @@ version = "0.1.0"
 [workspace.dependencies]
 configs = { path = "./configs" }
 dto = { path = "./dto" }
+entity = { path = "./entity" }
 
 silent = { git = "https://github.com/hubertshelley/silent.git", branch = "2.0.0" }
 

@@ -6,7 +6,6 @@ mod sys_dict_type;
 // mod sys_job;
 // mod sys_job_log;
 mod sys_menu;
-mod sys_oper_log;
 mod sys_post;
 mod sys_role; // 角色管理
               // mod sys_update_log;
@@ -30,15 +29,14 @@ pub fn system_api() -> Route {
         .append(Route::new("online").append(sys_user_online_api())) // 在线用户
         .append(Route::new("job").append(sys_job_api())) // 定时任务
         .append(Route::new("job_log").append(sys_job_log_api())) // 定时任务日志
-        .append(Route::new("oper_log").append(sys_oper_log_api())) // 操作日志
         .append(Route::new("api_db").append(sys_api_db_api())) // 操作日志
         .append(Route::new("update_log").append(sys_update_log_api())) // 更新日志
 }
 
 fn sys_user_api() -> Route {
     Route::new("")
+        .append(Route::new("").get(sys_user::get_post_role_list)) // 获取全部用户
         .append(Route::new("list").get(sys_user::get_sort_list)) // 获取全部用户
-        .append(Route::new("get_by_id").get(sys_user::get_by_id)) // 按id获取用户
         .append(Route::new("get_profile").get(sys_user::get_profile)) // 按当前获取用户信息
         .append(Route::new("update_profile").put(sys_user::update_profile)) // 更新用户信息
         .append(Route::new("add").post(sys_user::add)) // 添加用户
@@ -53,6 +51,7 @@ fn sys_user_api() -> Route {
         .append(Route::new("fresh_token").put(sys_user::fresh_token)) // 修改状态
         .append(Route::new("update_avatar").post(sys_user::update_avatar)) // 修改头像
         .append(Route::new("deptTree").get(sys_dept::get_dept_tree)) // 获取部门树
+        .append(Route::new("<id:str>").get(sys_user::get_by_id)) // 按id获取用户
 }
 
 fn sys_dict_type_api() -> Route {
@@ -147,13 +146,7 @@ fn sys_job_log_api() -> Route {
     // .append(Route::new("clean").delete(sys_job_log::clean)) // 清空定时任务日志
     // .append(Route::new("delete").delete(sys_job_log::delete)) // 硬删除定时任务日志
 }
-fn sys_oper_log_api() -> Route {
-    Route::new("")
-        .append(Route::new("list").get(sys_oper_log::get_sort_list)) // 获取全部操作日志
-        .append(Route::new("get_by_id").get(sys_oper_log::get_by_id)) // 按id获取操作日志
-        .append(Route::new("clean").delete(sys_oper_log::clean)) // 清空操作日志
-        .append(Route::new("delete").delete(sys_oper_log::delete)) // 硬删除操作日志
-}
+
 fn sys_api_db_api() -> Route {
     Route::new("")
     // .append(Route::new("get_by_id").get(sys_api_db::get_by_id)) // 按id获取

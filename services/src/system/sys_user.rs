@@ -6,6 +6,7 @@ use common::middlewares::authorization::User;
 use common::snowflake::next_id;
 use common::utils;
 use configs::CFG;
+use dto::system::sys_user::PostRoleListResp;
 use dto::{
     common::res::{ListData, PageParams},
     system::{
@@ -25,7 +26,19 @@ use sea_orm::{
 };
 use silent::header::HeaderMap;
 use silent::prelude::argon2::{make_password, verify_password};
+use silent::SilentError;
 use tokio::join;
+
+/// 获取岗位角色列表
+pub async fn get_post_role_list(db: &DatabaseConnection) -> Result<PostRoleListResp> {
+    let roles = crate::system::sys_role::get_all(db)
+        .await
+        .map_err(Into::<SilentError>::into)?;
+    let posts = crate::system::sys_post::get_all(db)
+        .await
+        .map_err(Into::<SilentError>::into)?;
+    Ok(PostRoleListResp { roles, posts })
+}
 
 /// get_user_list 获取用户列表
 /// page_params 分页参数
@@ -305,16 +318,16 @@ pub async fn get_by_id(db: &DatabaseConnection, user_id: &str) -> Result<UserWit
 /// add 添加
 pub async fn add(db: &DatabaseConnection, req: SysUserAddReq, c_user_id: String) -> Result<String> {
     let uid = next_id()?;
-    let passwd = make_password(req.user_password)?;
+    let passwd = make_password(req.password)?;
     let user = sys_user::ActiveModel {
         id: Set(uid.clone()),
         user_name: Set(req.user_name),
-        nick_name: Set(req.user_nickname),
+        nick_name: Set(req.nick_name),
         password: Set(Some(passwd)),
-        status: Set(Some(req.user_status)),
-        email: Set(req.user_email),
+        status: Set(Some(req.status)),
+        email: Set(req.email),
         sex: Set(Some(req.sex)),
-        dept_id: Set(Some(req.dept_id)),
+        dept_id: Set(Some(req.dept_id.clone())),
         remark: Set(req.remark),
         phone_number: Set(req.phone_number),
         avatar: Set(req.avatar),
@@ -334,7 +347,7 @@ pub async fn add(db: &DatabaseConnection, req: SysUserAddReq, c_user_id: String)
     // 删除原有部门信息
     super::sys_user_dept::delete_user_dept(&txn, &uid).await?;
     // 添加新的部门信息
-    super::sys_user_dept::edit_user_dept(&txn, &uid, req.dept_ids, &c_user_id).await?;
+    super::sys_user_dept::edit_user_dept(&txn, &uid, vec![req.dept_id], &c_user_id).await?;
 
     txn.commit().await?;
 
@@ -505,14 +518,14 @@ pub async fn edit(
     // 更新用户信息
     sys_user::Entity::update_many()
         .col_expr(sys_user::Column::UserName, Expr::value(req.user_name))
-        .col_expr(sys_user::Column::NickName, Expr::value(req.user_nickname))
-        .col_expr(sys_user::Column::Status, Expr::value(req.user_status))
-        .col_expr(sys_user::Column::Email, Expr::value(req.user_email))
+        .col_expr(sys_user::Column::NickName, Expr::value(req.nick_name))
+        .col_expr(sys_user::Column::Status, Expr::value(req.status))
+        .col_expr(sys_user::Column::Email, Expr::value(req.email))
         .col_expr(sys_user::Column::Sex, Expr::value(req.sex))
-        .col_expr(sys_user::Column::DeptId, Expr::value(req.dept_id))
+        .col_expr(sys_user::Column::DeptId, Expr::value(req.dept_id.clone()))
         .col_expr(sys_user::Column::Remark, Expr::value(req.remark))
         // .col_expr(sys_user::Column::IsAdmin, Expr::value(req.is_admin))
-        .col_expr(sys_user::Column::PhoneNumber, Expr::value(req.phone_num))
+        .col_expr(sys_user::Column::PhoneNumber, Expr::value(req.phone_number))
         .col_expr(
             sys_user::Column::UpdateTime,
             Expr::value(Local::now().naive_local()),
@@ -531,11 +544,14 @@ pub async fn edit(
     // 先删除原有的角色信息，再添加新的角色信息
     super::sys_user_role::delete_user_role(&txn, &uid).await?;
 
-    super::sys_user_role::edit_user_role(&txn, &uid, req.role_ids, &c_user_id).await?;
+    super::sys_user_role::edit_user_role(&txn, &uid, req.role_ids.unwrap_or(vec![]), &c_user_id)
+        .await?;
     // 删除原有部门信息
     super::sys_user_dept::delete_user_dept(&txn, &uid).await?;
+    let mut dept_ids = req.dept_ids.unwrap_or(vec![]);
+    dept_ids.push(req.dept_id.clone());
     // 添加新的部门信息
-    super::sys_user_dept::edit_user_dept(&txn, &uid, req.dept_ids, &c_user_id).await?;
+    super::sys_user_dept::edit_user_dept(&txn, &uid, dept_ids, &c_user_id).await?;
 
     txn.commit().await?;
     Ok("用户数据更新成功".to_string())
@@ -714,6 +730,7 @@ pub async fn get_user_info_by_id(db: &DatabaseConnection, id: &str) -> Result<Us
                 post_ids,
                 role_ids,
                 dept_ids,
+                post_roles: get_post_role_list(db).await?,
             };
             Ok(res)
         }

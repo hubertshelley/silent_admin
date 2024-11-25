@@ -55,7 +55,7 @@ pub async fn get_by_id(mut req: Request) -> Result<sys_dict_data::Model> {
 /// get_user_by_id 获取用户Id获取用户
 /// db 数据库连接 使用db.0
 
-pub async fn get_by_type(mut req: Request) -> Result<Vec<sys_dict_data::Model>> {
+pub async fn get_by_type(req: Request) -> Result<Vec<sys_dict_data::Model>> {
     let dict_type = req.get_path_params("type")?;
     let db = req.get_config()?;
     system::sys_dict_data::get_by_type(db, dict_type)

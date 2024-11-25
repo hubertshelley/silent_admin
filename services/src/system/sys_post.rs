@@ -8,8 +8,8 @@ use dto::system::sys_post::{
 use entity::prelude::{SysPost, SysUserPost};
 use entity::{sys_post, sys_user_post};
 use sea_orm::{
-    sea_query::Expr, ColumnTrait, ConnectionTrait, DatabaseConnection, EntityTrait, Order,
-    PaginatorTrait, QueryFilter, QueryOrder, Set, TransactionTrait,
+    sea_query::Expr, ColumnTrait, ConnectionTrait, DatabaseConnection, DbBackend, EntityTrait,
+    Order, PaginatorTrait, QueryFilter, QueryOrder, QueryTrait, Set, TransactionTrait,
 };
 use silent::Result;
 
@@ -26,13 +26,13 @@ pub async fn get_sort_list(
     //  生成查询条件
     let mut s = SysPost::find();
 
-    if let Some(x) = req.post_code {
+    if let Some(x) = req.code {
         if !x.is_empty() {
             s = s.filter(sys_post::Column::Code.contains(&x));
         }
     }
 
-    if let Some(x) = req.post_name {
+    if let Some(x) = req.name {
         if !x.is_empty() {
             s = s.filter(sys_post::Column::Name.contains(&x));
         }
@@ -119,16 +119,16 @@ pub async fn eidt_check_data_is_exist(
 
 pub async fn add(db: &DatabaseConnection, req: SysPostAddReq, user_id: String) -> Result<String> {
     //  检查字典类型是否存在
-    if check_data_is_exist(req.clone().post_code, req.clone().post_name, db).await? {
+    if check_data_is_exist(req.clone().code, req.clone().name, db).await? {
         return Err(anyhow!("数据已存在").into());
     }
 
     let uid = next_id()?;
     let user = sys_post::ActiveModel {
         id: Set(uid.clone()),
-        code: Set(req.post_code),
-        sort: Set(req.post_sort),
-        name: Set(req.post_name),
+        code: Set(req.code),
+        sort: Set(req.sort),
+        name: Set(req.name),
         status: Set(req.status),
         remark: Set(Some(req.remark.unwrap_or_default())),
         create_by: Set(user_id),
@@ -161,20 +161,13 @@ pub async fn delete(db: &DatabaseConnection, delete_req: SysPostDeleteReq) -> Re
 // edit 修改
 pub async fn edit(db: &DatabaseConnection, req: SysPostEditReq, user_id: String) -> Result<String> {
     //  检查字典类型是否存在
-    if eidt_check_data_is_exist(
-        req.post_id.clone(),
-        req.post_code.clone(),
-        req.post_name.clone(),
-        db,
-    )
-    .await?
-    {
+    if eidt_check_data_is_exist(req.id.clone(), req.code.clone(), req.name.clone(), db).await? {
         return Err(anyhow!("数据已存在").into());
     }
     sys_post::Entity::update_many()
-        .col_expr(sys_post::Column::Code, Expr::value(req.post_code))
-        .col_expr(sys_post::Column::Name, Expr::value(req.post_name))
-        .col_expr(sys_post::Column::Sort, Expr::value(req.post_sort))
+        .col_expr(sys_post::Column::Code, Expr::value(req.code))
+        .col_expr(sys_post::Column::Name, Expr::value(req.name))
+        .col_expr(sys_post::Column::Sort, Expr::value(req.sort))
         .col_expr(sys_post::Column::Status, Expr::value(req.status))
         .col_expr(sys_post::Column::Remark, Expr::value(req.remark))
         .col_expr(sys_post::Column::UpdateBy, Expr::value(user_id))
@@ -182,7 +175,7 @@ pub async fn edit(db: &DatabaseConnection, req: SysPostEditReq, user_id: String)
             sys_post::Column::UpdateTime,
             Expr::value(Local::now().naive_local()),
         )
-        .filter(sys_post::Column::Id.eq(req.post_id))
+        .filter(sys_post::Column::Id.eq(req.id))
         .exec(db)
         .await
         .map_err(|e| anyhow!("{:?}", e))?;
@@ -199,7 +192,7 @@ pub async fn get_by_id(
     let mut s = SysPost::find();
     s = s.filter(sys_post::Column::DelFlag.eq(0));
     //
-    if let Some(x) = search_req.post_id {
+    if let Some(x) = search_req.id {
         s = s.filter(sys_post::Column::Id.eq(x));
     } else {
         return Err(anyhow!("请求参数错误").into());
@@ -246,7 +239,7 @@ pub async fn get_post_ids_by_user_id(
 pub async fn get_all(db: &DatabaseConnection) -> Result<Vec<SysPostResp>> {
     let s = SysPost::find()
         .filter(sys_post::Column::DelFlag.eq(0))
-        .filter(sys_post::Column::Status.eq("1"))
+        .filter(sys_post::Column::Status.eq("0"))
         .order_by(sys_post::Column::Id, Order::Asc)
         .into_model::<SysPostResp>()
         .all(db)
@@ -259,6 +252,16 @@ pub async fn delete_post_by_user_id<C>(db: &C, user_ids: Vec<String>) -> Result<
 where
     C: TransactionTrait + ConnectionTrait,
 {
+    if user_ids.is_empty() {
+        return Ok(());
+    }
+    println!(
+        "delete_post_by_user_id user_ids:{:?}",
+        SysUserPost::delete_many()
+            .filter(sys_user_post::Column::UserId.is_in(user_ids.clone()))
+            .build(DbBackend::MySql)
+            .to_string()
+    );
     SysUserPost::delete_many()
         .filter(sys_user_post::Column::UserId.is_in(user_ids))
         .exec(db)

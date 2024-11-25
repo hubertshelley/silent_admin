@@ -12,6 +12,9 @@ pub async fn edit_user_dept<C>(
 where
     C: TransactionTrait + ConnectionTrait,
 {
+    if dept_ids.is_empty() {
+        return Ok(());
+    }
     // 添加用户角色
     sys_user_dept::Entity::insert_many(
         dept_ids

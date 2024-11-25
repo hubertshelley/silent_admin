@@ -111,20 +111,20 @@ pub async fn add(db: &DatabaseConnection, req: SysRoleAddReq, _user_id: &str) ->
 // 组合角色数据
 pub async fn get_permissions_data<C>(
     db: &C,
-    role_id: String,
-    menu_ids: Vec<String>,
+    _role_id: String,
+    _menu_ids: Vec<String>,
 ) -> Result<Vec<sys_role_api::SysRoleApiAddReq>>
 where
     C: TransactionTrait + ConnectionTrait,
 {
     // 获取全部菜单 均为false
     let menus = super::sys_menu::get_menus(db, false, false, false).await?;
-    let menu_map = menus
+    let _menu_map = menus
         .iter()
         .map(|x| (x.id.clone(), x.clone()))
         .collect::<HashMap<String, MenuResp>>();
     // 组装角色权限数据
-    let mut res: Vec<sys_role_api::SysRoleApiAddReq> = Vec::new();
+    let res: Vec<sys_role_api::SysRoleApiAddReq> = Vec::new();
     // for menu_id in menu_ids {
     //     if let Some(menu) = menu_map.get(&menu_id) {
     //         res.push(sys_role_api::SysRoleApiAddReq {

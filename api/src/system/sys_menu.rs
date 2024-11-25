@@ -24,7 +24,7 @@ pub async fn get_sort_list(mut req: Request) -> Result<ListData<sys_menu::Model>
 /// get_user_by_id 获取用户Id获取用户
 /// db 数据库连接 使用db.0
 
-pub async fn get_by_id(mut req: Request) -> Result<MenuResp> {
+pub async fn get_by_id(req: Request) -> Result<MenuResp> {
     let id = req.get_path_params("id")?;
     let db = req.get_config()?;
     let res = system::sys_menu::get_by_id(db, id).await;

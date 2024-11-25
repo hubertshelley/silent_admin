@@ -73,11 +73,11 @@ pub struct AddOrCancelAuthRoleReq {
 #[derive(Debug, Serialize, FromQueryResult, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SysRoleResp {
-    pub role_id: String,
-    pub role_name: String,
-    pub role_key: String,
+    pub id: String,
+    pub name: String,
+    pub key: String,
     pub status: String,
-    pub list_order: i32,
+    pub sort: i32,
     pub remark: String,
     pub data_scope: String,
 }
