@@ -20,6 +20,7 @@ pub struct PageParams {
 #[derive(Debug, Serialize, Default)]
 pub struct Res<T> {
     pub code: Option<i32>,
+    #[serde(flatten)]
     pub data: Option<T>,
     pub msg: Option<String>,
 }
@@ -39,6 +40,13 @@ impl<T: Serialize> Res<T> {
     pub fn with_err(err: &str) -> Self {
         Self {
             code: Some(500),
+            data: None,
+            msg: Some(err.to_string()),
+        }
+    }
+    pub fn with_err_code(err: &str, code: u16) -> Self {
+        Self {
+            code: Some(code as i32),
             data: None,
             msg: Some(err.to_string()),
         }

@@ -12,11 +12,9 @@ use tokio::fs;
 pub fn get_captcha() -> CaptchaImage {
     let captcha = Captcha::new(4, 130, 40);
     let uuid = utils::encrypt_password(&captcha.text.to_lowercase(), "");
-    CaptchaImage {
-        captcha_on_off: true,
-        uuid,
-        img: captcha.base_img,
-    }
+    // 这里的base_img是base64编码的图片数据，需要去掉前面的data:image/gif;base64,
+    let img = captcha.base_img.replace("data:image/png;base64,", "");
+    CaptchaImage { captcha_on_off: true, uuid, img }
 }
 
 /// 上传相关

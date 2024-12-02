@@ -12,5 +12,5 @@ mod test; // 测试模块
 mod route;
 
 pub async fn exception_handler(err: SilentError, _configs: Configs) -> Response {
-    Res::<()>::with_err(&err.message()).into()
+    Res::<()>::with_err_code(&err.message(), err.status().as_u16()).into()
 }

@@ -12,7 +12,7 @@ pub fn api() -> Route {
         // 文件上传api
         // .nest_service(&CFG.web.upload_url, get_service(ServeDir::new(&CFG.web.upload_dir)))
         // 无需授权Api.通用模块
-        .append(Route::new("comm").append(no_auth_api()))
+        .append(Route::new("").append(no_auth_api()))
         // 系统管理模块
         .append(Route::new("system").append(set_auth_middleware(system::system_api())))
         //  测试模块
@@ -23,7 +23,7 @@ pub fn api() -> Route {
 fn no_auth_api() -> Route {
     Route::new("")
         .append(Route::new("login").post(system::login)) // 登录
-        .append(Route::new("get_captcha").get(system::get_captcha)) // 获取验证码
+        .append(Route::new("captchaImage").get(system::get_captcha)) // 获取验证码
         .append(Route::new("log_out").post(system::log_out)) // 退出登录
 }
 
